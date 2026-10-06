@@ -1,0 +1,185 @@
+=====================================================================
+04  DARBAS SU OS PROCESAIS  /  WORKING WITH OS PROCESSES
+=====================================================================
+Teorija / theory: procesas = vykdoma programa, turi PID (process ID),
+PPID (tėvo PID), savininką, būseną: R running, S sleeping, D disk
+wait, T stopped, Z zombie. Signalai: TERM (15, mandagiai baigti),
+KILL (9, nužudyti), HUP (1), STOP/CONT.
+A process = a running program with a PID, parent PID, owner and state:
+R running, S sleeping, D disk wait, T stopped, Z zombie.
+Signals: TERM (15 polite), KILL (9 force), HUP (1), STOP/CONT.
+
+---------------------------------------------------------------------
+1. Išveskite į ekraną visus OS procesus.
+---------------------------------------------------------------------
+   $ ps aux
+   $ ps -ef            # kitas (System V) formatas, rodo PPID / other format with PPID
+   $ ps aux | less     # puslapiais / paged
+
+   LT: ps (process status) rodo procesus. a = visų vartotojų, u = su
+       vartotoju/CPU/RAM, x = ir be terminalo (daemon'ai).
+       Stulpeliai: USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
+   EN: ps shows processes. a = all users, u = user-oriented format,
+       x = include processes without a terminal (daemons).
+
+---------------------------------------------------------------------
+2. Visų procesų sąrašą išsaugokite faile ~/procesai.txt.
+---------------------------------------------------------------------
+   $ ps aux > ~/procesai.txt
+   $ wc -l ~/procesai.txt
+
+---------------------------------------------------------------------
+3. Išveskite visus vartotojo root procesus.
+---------------------------------------------------------------------
+   $ ps -u root
+   $ ps -u root u             # pilnesnis formatas / fuller format
+   $ ps aux | grep '^root'
+
+   LT: -u <vartotojas> filtruoja pagal efektyvų vartotoją. '^root' –
+       eilutės, prasidedančios "root".
+   EN: -u <user> filters by effective user. '^root' = lines starting
+       with "root".
+
+---------------------------------------------------------------------
+4. Išbandykite komandą pstree.
+---------------------------------------------------------------------
+   $ pstree
+   $ pstree -p            # su PID / with PIDs
+   $ pstree -u            # su vartotojais / with users
+   $ pstree -p $USER      # tik mano / only mine
+   (jei nėra: sudo apt install psmisc)
+
+   LT: pstree rodo procesų medį: kas ką paleido (tėvai → vaikai), viršuje
+       systemd (PID 1).
+   EN: pstree shows the process tree: parent → child, systemd (PID 1)
+       at the top.
+
+---------------------------------------------------------------------
+5. Paleiskite Firefox iš komandinės eilutės.
+---------------------------------------------------------------------
+   $ firefox &
+   $ firefox > /dev/null 2>&1 &        # be pranešimų terminale / silent
+   $ nohup firefox &                   # išgyvens uždarius terminalą / survives terminal close
+
+   LT: & paleidžia fone (background), terminalas lieka laisvas. Be & –
+       terminalas užimtas, kol Firefox uždarytas (Ctrl+Z sustabdo, bg
+       nukelia į foną, fg grąžina, jobs – sąrašas).
+   EN: & runs it in the background and frees the terminal. Without &
+       the terminal is busy until Firefox closes (Ctrl+Z stops it, bg
+       backgrounds it, fg brings it back, jobs lists them).
+
+---------------------------------------------------------------------
+6. Suraskite Firefox procesų sąraše.
+---------------------------------------------------------------------
+   $ ps aux | grep firefox
+   $ ps aux | grep [f]irefox      # gudrybė, kad nerodytų paties grep / hides grep itself
+   $ pgrep -a firefox             # PID + komanda
+   $ pidof firefox
+
+   LT: pgrep ieško procesų pagal vardą ir išveda PID; -a ir komandą.
+   EN: pgrep finds processes by name and prints PIDs; -a adds the command.
+
+---------------------------------------------------------------------
+7. Uždarykite Firefox iš komandinės eilutės.
+---------------------------------------------------------------------
+   $ pkill firefox
+   $ killall firefox
+   $ kill <PID>                   # PID iš 6 punkto / PID from step 6
+   $ kill -9 <PID>                # jei nereaguoja / force (SIGKILL)
+   $ pkill -9 firefox
+
+   LT: kill siunčia signalą pagal PID (numatyta TERM=15); pkill/killall
+       pagal vardą. -9 = KILL, procesas negali ignoruoti.
+   EN: kill sends a signal by PID (default TERM=15); pkill/killall by
+       name. -9 = KILL, cannot be ignored.
+
+---------------------------------------------------------------------
+8. Kiek procesų priklauso jūsų vartotojui.
+---------------------------------------------------------------------
+   $ ps -u $USER --no-headers | wc -l
+   $ ps -u $(whoami) | wc -l          # (vienu daugiau dėl antraštės / +1 header)
+   $ pgrep -u $USER | wc -l
+   $ pgrep -c -u $USER                # -c = count
+
+   LT: $USER – aplinkos kintamasis su Jūsų vardu; wc -l skaičiuoja eilutes.
+   EN: $USER – environment variable with your name; wc -l counts lines.
+
+---------------------------------------------------------------------
+9. Išbandykite top.
+---------------------------------------------------------------------
+   $ top            # q – išeiti / quit
+   $ htop           # patogesnis (sudo apt install htop) / nicer
+
+   top klavišai / keys:
+     q quit, h help, k kill (įvesti PID), r renice, u filtruoti pagal
+     vartotoją, P rūšiuoti pagal CPU, M pagal atmintį, 1 visi branduoliai,
+     c pilna komanda, space atnaujinti.
+
+---------------------------------------------------------------------
+*10. top pagalba: kuri programa naudoja daugiausiai RAM.
+---------------------------------------------------------------------
+   $ top          → spauskite Shift+M (rūšiuoti pagal %MEM) / press Shift+M
+   Be top / without top:
+   $ ps aux --sort=-%mem | head -n 5
+   $ ps -eo pid,user,%mem,rss,comm --sort=-%mem | head
+
+   LT: --sort=-%mem – mažėjančia tvarka pagal atminties procentą; head –
+       pirmos eilutės.
+   EN: --sort=-%mem – descending by memory percentage; head – top lines.
+
+---------------------------------------------------------------------
+*11. Išfiltruokite visus veikiančius (running, R) procesus.
+---------------------------------------------------------------------
+   $ ps -eo pid,stat,user,comm | awk '$2 ~ /^R/'
+   $ ps r                           # BSD: tik running / running only
+   $ ps aux | awk '$8 ~ /^R/'       # 8 stulpelis = STAT
+   top → spauskite i (slėpti neaktyvius) / press i to hide idle
+
+   LT: STAT stulpelis: R = running/runnable. awk filtruoja pagal stulpelį.
+   EN: STAT column: R = running/runnable. awk filters by column.
+
+---------------------------------------------------------------------
+*12. Paleiskite firefox taip, kad būtų nutrauktas po 10 sekundžių.
+---------------------------------------------------------------------
+   $ timeout 10 firefox
+   $ timeout -s KILL 10 firefox       # KILL vietoje TERM / use KILL
+   Rankiniu būdu / manually:
+   $ firefox & sleep 10; kill $!
+
+   LT: timeout <sek> <komanda> paleidžia komandą ir po laiko siunčia
+       TERM. $! – paskutinio foninio proceso PID.
+   EN: timeout <sec> <cmd> runs a command and sends TERM after the time.
+       $! – PID of the last background process.
+
+---------------------------------------------------------------------
+*13. Užblokuokite savo naudotojui galimybę paleisti ls.
+---------------------------------------------------------------------
+   Variantas A – ACL konkrečiam vartotojui (geriausias) / ACL for one user (best):
+   $ sudo setfacl -m u:$USER:0 /usr/bin/ls
+   $ ls            # bash: /usr/bin/ls: Permission denied
+   $ getfacl /usr/bin/ls
+   Atšaukti / undo:
+   $ sudo setfacl -x u:$USER /usr/bin/ls
+
+   Variantas B – alias (tik Jūsų shell'ui) / alias (only your shell):
+   $ echo "alias ls='echo ls uzblokuota'" >> ~/.bashrc && source ~/.bashrc
+   Atšaukti / undo: unalias ls ; ištrinti eilutę iš ~/.bashrc
+
+   Variantas C – chmod (paveiks VISUS ne-root) / affects all non-root:
+   $ sudo chmod o-x /usr/bin/ls      # atšaukti: sudo chmod o+x /usr/bin/ls
+
+   LT: ACL (access control list) leidžia nustatyti teises atskiram
+       vartotojui, nekeičiant savininko/grupės. Ubuntu /bin yra nuoroda į
+       /usr/bin, todėl /bin/ls = /usr/bin/ls.
+   EN: ACL lets you set permissions for one specific user without changing
+       owner/group. On Ubuntu /bin is a symlink to /usr/bin, so
+       /bin/ls = /usr/bin/ls.
+
+---------------------------------------------------------------------
+PAPILDOMAI / EXTRA
+---------------------------------------------------------------------
+   $ ps aux | awk '$8=="Z"'               # zombie procesai / zombie processes
+   $ ps -eo pid,ppid,stat,cmd | grep -w Z
+   $ nice -n 10 komanda ; renice -n 5 -p PID   # prioritetas / priority
+   $ jobs ; fg %1 ; bg %1 ; Ctrl+Z ; Ctrl+C    # foninių darbų valdymas / job control
+   $ uptime ; free -h ; cat /proc/cpuinfo      # apkrova, atmintis / load, memory

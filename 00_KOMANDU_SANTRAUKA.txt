@@ -1,0 +1,93 @@
+=====================================================================
+KOMANDŲ SANTRAUKA (visi skyriai)  /  COMMAND CHEAT SHEET (all topics)
+=====================================================================
+FAILAI IR KATALOGAI / FILES & DIRS
+  pwd                 kur esu / current dir
+  ls -la              sąrašas su teisėmis ir paslėptais / list, long, hidden
+  cd kat ; cd .. ; cd ~ ; cd -      eiti / go (up, home, back)
+  mkdir -p a/b        kurti (su tėvais) / create (with parents)
+  touch f             tuščias failas / empty file
+  cp -r src dst       kopijuoti (-r katalogus) / copy
+  mv a b              perkelti / pervadinti / move or rename
+  rm -rf kat          trinti / delete (recursive, force)
+  ln -s tikslas nuoroda   simbolinė nuoroda / symlink
+  cat f ; less f ; head -n 5 f ; tail -n 5 f ; tail -f log
+  grep -n žodis f ; grep -r žodis kat ; grep -i (nepaisyti dydžio)
+  wc -l -w -m -c f    eilutės žodžiai simboliai baitai / lines words chars bytes
+  sort -u f ; uniq ; nl f ; cat -n f
+  find kat -name "*.txt" -type f 2>/dev/null ; locate f
+  stat -c %s f        dydis baitais / size in bytes
+  file f              failo tipas / file type
+  echo "t" > f (perrašyti) ; >> f (pridėti) ; cmd | cmd (pipe) ; tee f
+  sed -i 's/a/b/g' f  pakeisti tekste / replace in file
+
+VARTOTOJAI / USERS
+  sudo useradd -m -d /home/x -g users -G sudo,audio -s /bin/bash vardas
+  sudo passwd vardas ; echo "v:slapt" | sudo chpasswd
+  sudo usermod -aG grupė vardas (pridėti) ; sudo gpasswd -d vardas grupė (pašalinti)
+  sudo userdel -r vardas ; sudo groupadd g ; sudo groupdel g
+  id ; groups ; whoami ; who ; w ; su - vardas ; sudo -i ; exit
+  /etc/passwd /etc/shadow /etc/group /etc/sudoers (visudo)
+
+TEISĖS / PERMISSIONS   r=4 w=2 x=1   u g o   -rwxr-xr-x = 755
+  chmod 644 f ; chmod u+x f ; chmod -R 755 kat ; chmod o= f
+  sudo chown vart:grupė f ; sudo chgrp grupė f ; umask
+  setfacl -m u:vardas:rw f ; getfacl f
+
+PROCESAI / PROCESSES
+  ps aux ; ps -ef ; ps -u vardas ; ps aux --sort=-%mem | head
+  pstree -p ; top (M atmintis, P cpu, k kill, q) ; htop
+  pgrep -a vardas ; pidof ; kill PID ; kill -9 PID ; pkill vardas ; killall vardas
+  cmd & ; jobs ; fg ; bg ; Ctrl+Z ; nohup cmd & ; timeout 10 cmd
+  ps aux | awk '$8 ~ /Z/'   zombiai
+
+TARNYBOS / SERVICES (systemd)
+  systemctl status|start|stop|restart|reload|enable|disable X
+  systemctl enable --now X ; systemctl is-active X ; systemctl --failed
+  systemctl list-units --type=service [--all] [--state=inactive]
+  journalctl -u X [-b] [-f] [-p err] [--since "1 hour ago"]
+
+REDAKTORIAI / EDITORS
+  nano: ^O save ^X exit ^W find ^\ replace ^J justify M-N numbers ^G help
+  vim:  i insert, Esc, :wq, :q!, /find, :%s/a/b/g, :set number, dd, u, G, gg
+
+ARCHYVAI / ARCHIVES
+  tar -czvf a.tar.gz failai ; tar -cjvf a.tar.bz2 ; tar -xzvf a.tar.gz -C kat ; tar -tvf
+  zip a.zip f1 f2 ; unzip a.zip -d kat ; gzip f ; gunzip f.gz ; bzip2 ; unrar x ; 7z x
+
+PAKETAI / PACKAGES
+  sudo apt update ; sudo apt upgrade -y ; apt search x ; apt show x
+  sudo apt install x ; sudo apt remove|purge x ; sudo apt autoremove
+  sudo dpkg -i f.deb ; sudo apt install -f ; dpkg -l ; dpkg -L x ; dpkg -S failas
+  sudo add-apt-repository ppa:user/ppa ; sudo snap install x
+  iš kodo: ./configure && make && sudo make install
+  Fedora: dnf install|remove|search ; rpm -i ; rpm -qa
+
+BASH SCENARIJAI / SCRIPTS
+  #!/bin/bash ; chmod +x s.sh ; ./s.sh ; $1 $# $@ $0 $? $$
+  read -p "Klausimas: " x ; if [ -z "$1" ]; then ...; fi ; for f in *; do ...; done
+  [ -f f ] failas ; [ -d k ] katalogas ; $(cmd) rezultatas
+
+TINKLAS / NETWORK
+  ip a ; hostname -I ; ip route ; curl ifconfig.me (viešas IP)
+  ping -c 3 host ; dig host +short ; dig host AAAA ; nslookup host ; host host
+  ss -tlnp (atviri prievadai) ; sudo ufw allow 22 ; sudo ufw status
+
+SSH / SCP
+  sudo apt install openssh-server ; sudo systemctl enable --now ssh
+  ssh -p 22 vardas@IP ; scp -P 22 vardas@IP:/kelias/f . ; scp -r kat vardas@IP:~
+  /etc/ssh/sshd_config: Port, PermitRootLogin no, AllowUsers ; sudo sshd -t ; restart ssh
+  ssh-keygen -t ed25519 ; ssh-copy-id vardas@IP
+
+APACHE / NGINX
+  sudo apt install apache2 ; /var/www/ ; /etc/apache2/sites-available/*.conf
+  sudo a2ensite x.conf ; sudo a2dissite ; sudo apachectl configtest ; systemctl reload apache2
+  <VirtualHost *:80> ServerName d ; DocumentRoot /var/www/x </VirtualHost>
+  ports.conf: Listen 8080 ; curl -I http://localhost
+  nginx: /etc/nginx/sites-available ; ln -s į sites-enabled ; nginx -t ; server { listen 80; root ...; }
+
+DOCKER
+  docker run -d --name n -p 8080:80 nginx ; docker ps -a ; docker stop|start|rm n
+  docker images ; docker rmi ; docker logs n ; docker exec -it n sh
+  Dockerfile: FROM nginx:alpine / COPY site/ /usr/share/nginx/html/
+  docker build -t vardas . ; docker compose up -d ; docker compose down

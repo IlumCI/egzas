@@ -1,0 +1,130 @@
+=====================================================================
+03  DARBAS SU VARTOTOJAIS  /  WORKING WITH USERS AND GROUPS
+=====================================================================
+Tikslas / Goal: valdyti vartotojus ir grupes komandinėje eilutėje.
+Visoms vartotojų valdymo komandoms reikia sudo (root teisių).
+All user-management commands need sudo (root privileges).
+
+---------------------------------------------------------------------
+1. Sukurkite vartotoją pingvinas: namų katalogas madagaskaras, pagrindinė
+   grupė users, papildomos grupės lp,video,audio,cdrom, shell bash.
+---------------------------------------------------------------------
+   $ sudo useradd -m -d /home/madagaskaras -g users -G lp,video,audio,cdrom -s /bin/bash pingvinas
+
+   LT: useradd sukuria vartotoją.
+       -m  sukurti namų katalogą (make home)
+       -d  namų katalogo kelias (directory)
+       -g  pagrindinė (pirminė) grupė
+       -G  papildomos grupės, atskirtos kableliais
+       -s  prisijungimo apvalkalas (shell)
+       -c  "Komentaras / pilnas vardas" (nebūtina)
+   EN: useradd creates a user.
+       -m  create home directory
+       -d  home directory path
+       -g  primary group
+       -G  supplementary groups, comma-separated
+       -s  login shell
+       -c  "Comment / full name" (optional)
+
+   Patikrinimas / verify:
+   $ id pingvinas
+   $ grep pingvinas /etc/passwd
+   $ ls -ld /home/madagaskaras
+
+---------------------------------------------------------------------
+2. Suteikite vartotojui slaptažodį pingo.
+---------------------------------------------------------------------
+   $ sudo passwd pingvinas
+   (įveskite pingo du kartus / type pingo twice – ekrane nieko nerodoma)
+
+   Vienoje eilutėje (scenarijams) / one-liner (for scripts):
+   $ echo "pingvinas:pingo" | sudo chpasswd
+
+   LT: passwd keičia slaptažodį; chpasswd skaito "vardas:slaptažodis"
+       iš stdin.
+   EN: passwd changes a password; chpasswd reads "user:password" from stdin.
+
+---------------------------------------------------------------------
+3. Pridėkite vartotoją prie administravimo grupės sudo.
+---------------------------------------------------------------------
+   $ sudo usermod -aG sudo pingvinas
+
+   LT: usermod keičia esamą vartotoją. -aG = PRIDĖTI (append) prie grupių.
+       BE -a (tik -G) vartotojas būtų PAŠALINTAS iš visų kitų papildomų
+       grupių! Ubuntu sudo grupės nariai gali vykdyti sudo.
+   EN: usermod modifies a user. -aG = APPEND to groups. Without -a the
+       user would be REMOVED from all other supplementary groups!
+       On Ubuntu members of "sudo" can run sudo.
+
+   Alternatyva / alternative:
+   $ sudo adduser pingvinas sudo
+   $ sudo gpasswd -a pingvinas sudo
+
+---------------------------------------------------------------------
+4. Sukurkite naują grupę aliaska.
+---------------------------------------------------------------------
+   $ sudo groupadd aliaska
+   $ grep aliaska /etc/group         # patikrinti / verify
+
+   LT: groupadd sukuria grupę (/etc/group). groupdel – ištrina.
+   EN: groupadd creates a group (/etc/group). groupdel deletes one.
+
+---------------------------------------------------------------------
+5. Pridėkite vartotoją pingvinas prie grupės aliaska.
+---------------------------------------------------------------------
+   $ sudo usermod -aG aliaska pingvinas
+   arba / or:
+   $ sudo gpasswd -a pingvinas aliaska
+
+   Pašalinti iš grupės / remove from a group:
+   $ sudo gpasswd -d pingvinas aliaska
+   $ sudo deluser pingvinas aliaska
+
+---------------------------------------------------------------------
+6. Prisijunkite prie Linux OS vartotojo pingvinas vardu.
+---------------------------------------------------------------------
+   $ su - pingvinas            # įveskite pingo / enter pingo
+   arba / or:
+   $ sudo -iu pingvinas        # be slaptažodžio, jei turite sudo
+   arba Ctrl+Alt+F3 (tty) ir login: pingvinas
+
+   LT: su (switch user) persijungia į kitą vartotoją; "-" įkelia jo
+       aplinką (namų katalogą, PATH) kaip tikrą prisijungimą.
+       exit – grįžti atgal.
+   EN: su switches user; "-" loads their environment like a real login.
+       exit – go back.
+
+---------------------------------------------------------------------
+7. Patikrinkite, kokioms grupėms priklauso pingvinas.
+---------------------------------------------------------------------
+   $ groups pingvinas
+   $ id pingvinas
+   $ groups                       # dabartinio vartotojo / current user
+   $ grep pingvinas /etc/group
+
+   LT: groups išvardija grupes; id rodo UID, GID ir visas grupes.
+       (Po usermod naujos grupės matomos tik iš naujo prisijungus.)
+   EN: groups lists groups; id shows UID, GID and all groups.
+       (After usermod new groups show only after re-login.)
+
+---------------------------------------------------------------------
+8. Pašalinkite vartotoją pingvinas su namų katalogu ir visa informacija.
+---------------------------------------------------------------------
+   $ exit                          # jei vis dar esate pingvinas / if still logged in as pingvinas
+   $ sudo userdel -r pingvinas
+   $ sudo groupdel aliaska         # (nebūtina) išvalyti grupę / optional cleanup
+
+   LT: userdel ištrina vartotoją; -r kartu ištrina namų katalogą ir
+       pašto dėžutę. Jei vartotojas prisijungęs – pirma atsijunkite
+       (arba sudo userdel -rf).
+   EN: userdel deletes the user; -r also removes the home dir and mail
+       spool. If the user is logged in, log out first (or userdel -rf).
+
+---------------------------------------------------------------------
+SVARBŪS FAILAI / IMPORTANT FILES
+---------------------------------------------------------------------
+   /etc/passwd   vartotojai: vardas:x:UID:GID:komentaras:namai:shell
+   /etc/shadow   koduoti slaptažodžiai (skaito tik root) / hashed passwords
+   /etc/group    grupės: vardas:x:GID:nariai / groups
+   /etc/sudoers  kas gali sudo (redaguoti tik su visudo) / who may sudo
+   /etc/skel     šablonas naujo vartotojo namų katalogui / skeleton for new homes

@@ -1,0 +1,202 @@
+=====================================================================
+09  APACHE2 / NGINX WEB SERVERIAI IR SSH  /  WEB SERVERS AND SSH
+=====================================================================
+Scenarijus / scenario: Ubuntu VM = nutolęs serveris, Windows = vietinis
+kompiuteris. Vartotojas: mokinys. Prie kiekvienos užduoties – ekrano
+nuotrauka su komanda ir bent 2 išvesties eilutėmis.
+
+---------------------------------------------------------------------
+1. Įdiekite SSH serverį, patikrinkite ar veikia, jei ne – įjunkite. (VM)
+---------------------------------------------------------------------
+   $ sudo apt update && sudo apt install -y openssh-server
+   $ systemctl status ssh
+   $ sudo systemctl enable --now ssh
+   $ systemctl is-active ssh
+   $ hostname -I                     # IP, kurį naudosite iš Windows / IP for Windows
+
+---------------------------------------------------------------------
+2. Iš Windows (PowerShell) prisijunkite prie serverio per SSH.
+---------------------------------------------------------------------
+   PS> ssh mokinys@<Ubuntu_IP>
+   (VirtualBox NAT: port forwarding 2222→22, tada ssh -p 2222 mokinys@127.0.0.1;
+    Bridged: tiesiog VM IP.)
+
+---------------------------------------------------------------------
+3. Įdiekite Apache2, patikrinkite tarnybą, įjunkite.
+---------------------------------------------------------------------
+   $ sudo apt install -y apache2
+   $ systemctl status apache2
+   $ sudo systemctl enable --now apache2
+   $ sudo ufw allow 'Apache'  (arba sudo ufw allow 80/tcp)
+
+   LT: apache2 – tarnyba, konfigūracija /etc/apache2/, svetainės
+       /etc/apache2/sites-available (visos) ir sites-enabled (įjungtos –
+       nuorodos), failai /var/www/, log'ai /var/log/apache2/.
+   EN: service apache2, config in /etc/apache2/, sites in sites-available
+       (all) and sites-enabled (active symlinks), web root /var/www/,
+       logs /var/log/apache2/.
+
+---------------------------------------------------------------------
+4. Patikrinkite numatytąjį Apache puslapį serveryje ir iš vietinio PC.
+---------------------------------------------------------------------
+   Serveryje / on the server:
+   $ curl http://localhost
+   $ curl -I http://localhost          # tik antraštės: HTTP/1.1 200 OK / headers only
+   $ wget -qO- http://localhost | head
+   Windows naršyklėje / in Windows browser:  http://<Ubuntu_IP>
+   PowerShell:  PS> curl http://<Ubuntu_IP>   arba  Invoke-WebRequest http://<Ubuntu_IP>
+
+---------------------------------------------------------------------
+5. Sukurkite /var/www/mano-svetaine/index.html su vardu, pavarde ir
+   tekstu "Mano pirma svetainė".
+---------------------------------------------------------------------
+   $ sudo mkdir -p /var/www/mano-svetaine
+   $ sudo nano /var/www/mano-svetaine/index.html
+   ------------------------------ index.html -------------------------
+   <!DOCTYPE html>
+   <html lang="lt">
+   <head>
+       <meta charset="UTF-8">
+       <title>Vardas Pavardė</title>
+   </head>
+   <body>
+       <h1>Vardas Pavardė</h1>
+       <p>Mano pirma svetainė</p>
+   </body>
+   </html>
+   -------------------------------------------------------------------
+   $ sudo chown -R www-data:www-data /var/www/mano-svetaine
+   $ sudo chmod -R 755 /var/www/mano-svetaine
+   Įkelti turimą svetainę iš Windows / upload an existing site:
+   PS> scp -r C:\mano-svetaine\* mokinys@<IP>:/tmp/site ; then sudo mv /tmp/site/* /var/www/mano-svetaine/
+
+   LT: www-data – vartotojas, kuriuo veikia Apache; 755 – visi gali skaityti.
+   EN: www-data – the user Apache runs as; 755 – readable by all.
+
+---------------------------------------------------------------------
+6. Sukonfigūruokite Apache, kad svetainė būtų pasiekiama per naršyklę.
+---------------------------------------------------------------------
+   $ sudo nano /etc/apache2/sites-available/mano-svetaine.conf
+   ------------------------------ mano-svetaine.conf -----------------
+   <VirtualHost *:80>
+       ServerName mano-svetaine.local
+       ServerAlias www.mano-svetaine.local
+       ServerAdmin mokinys@localhost
+       DocumentRoot /var/www/mano-svetaine
+       <Directory /var/www/mano-svetaine>
+           Options Indexes FollowSymLinks
+           AllowOverride All
+           Require all granted
+       </Directory>
+       ErrorLog ${APACHE_LOG_DIR}/mano-svetaine-error.log
+       CustomLog ${APACHE_LOG_DIR}/mano-svetaine-access.log combined
+   </VirtualHost>
+   -------------------------------------------------------------------
+   $ sudo a2ensite mano-svetaine.conf
+   $ sudo apachectl configtest            # Syntax OK
+   $ sudo systemctl reload apache2
+   $ curl -H "Host: mano-svetaine.local" http://localhost
+
+   Jei norite, kad svetainė būtų rodoma pagal IP (vietoje default):
+   $ sudo a2dissite 000-default.conf && sudo systemctl reload apache2
+   Windows: http://<Ubuntu_IP>
+
+   LT: a2ensite įjungia svetainę (sukuria nuorodą sites-enabled);
+       a2dissite išjungia; configtest tikrina sintaksę; reload perskaito
+       konfigūraciją be sustabdymo.
+   EN: a2ensite enables a site (symlink in sites-enabled); a2dissite
+       disables; configtest checks syntax; reload re-reads config.
+
+---------------------------------------------------------------------
+7. Sukurkite domeną (noip.com) ir priskirkite svetainei.
+---------------------------------------------------------------------
+   1) Registruokitės https://www.noip.com → Dynamic DNS → Create Hostname,
+      pvz. mano-svetaine.ddns.net → nurodykite savo viešąjį IP
+      ($ curl ifconfig.me).
+   2) Namų maršrutizatoriuje nukreipkite 80 prievadą į Ubuntu IP (port
+      forwarding), VirtualBox NAT – forward 80→80.
+   3) (nebūtina) DUC klientas IP atnaujinimui: sudo apt install noip2 /
+      arba Dynamic Update Client iš noip.com.
+   Patikrinti / check:
+   $ nslookup mano-svetaine.ddns.net
+   Vietinio testavimo gudrybė (be noip) / local trick: Windows faile
+   C:\Windows\System32\drivers\etc\hosts pridėti:  <Ubuntu_IP>  mano-svetaine.ddns.net
+   Ubuntu: sudo nano /etc/hosts → 127.0.0.1 mano-svetaine.ddns.net
+
+---------------------------------------------------------------------
+8. Įgalinkite ir default, ir savo svetainę.
+---------------------------------------------------------------------
+   $ sudo a2ensite 000-default.conf
+   $ sudo a2ensite mano-svetaine.conf
+   $ sudo systemctl reload apache2
+   $ a2query -s                       # kurios įjungtos / which sites are enabled
+   $ ls -l /etc/apache2/sites-enabled/
+
+   LT: kai keli VirtualHost'ai tame pačiame 80 prievade, Apache renkasi
+       pagal ServerName (Host antraštę); pagal IP rodoma pirmoji
+       abėcėlėje (000-default).
+   EN: with several VirtualHosts on port 80 Apache picks by ServerName
+       (Host header); by bare IP the first alphabetically (000-default).
+
+---------------------------------------------------------------------
+9. Sukonfigūruokite svetainės virtualų hostą, pasiekiamą per domeną.
+---------------------------------------------------------------------
+   $ sudo nano /etc/apache2/sites-available/mano-svetaine.conf
+       ServerName  mano-svetaine.ddns.net
+       ServerAlias www.mano-svetaine.ddns.net
+   $ sudo apachectl configtest
+
+---------------------------------------------------------------------
+10. Perkraukite Apache2, patikrinkite per domeną iš vietinio kompiuterio.
+---------------------------------------------------------------------
+   $ sudo systemctl restart apache2
+   $ systemctl status apache2
+   $ curl http://mano-svetaine.ddns.net
+   Windows naršyklė: http://mano-svetaine.ddns.net
+   PS> Invoke-WebRequest http://mano-svetaine.ddns.net
+   Log'ai / logs:  sudo tail -f /var/log/apache2/mano-svetaine-access.log
+
+---------------------------------------------------------------------
+*11. Nginx – įdiekite ir talpinkite svetainę.
+---------------------------------------------------------------------
+   $ sudo apt install -y nginx
+   (80 prievadą jau užima Apache → nginx dėkite į 8080 arba sustabdykite
+    Apache: sudo systemctl stop apache2)
+   $ sudo nano /etc/nginx/sites-available/mano-svetaine
+   ------------------------------ mano-svetaine ----------------------
+   server {
+       listen 8080;
+       server_name mano-svetaine.ddns.net;
+       root /var/www/mano-svetaine;
+       index index.html;
+       location / {
+           try_files $uri $uri/ =404;
+       }
+   }
+   -------------------------------------------------------------------
+   $ sudo ln -s /etc/nginx/sites-available/mano-svetaine /etc/nginx/sites-enabled/
+   $ sudo nginx -t                       # tikrinti sintaksę / test syntax
+   $ sudo systemctl enable --now nginx
+   $ sudo systemctl restart nginx
+   $ curl http://localhost:8080
+   Windows: http://<Ubuntu_IP>:8080
+
+   LT: nginx: sites-available/sites-enabled kaip Apache, bet nuorodas
+       darome rankiniu būdu (ln -s); nginx -t = configtest;
+       konfigūracija /etc/nginx/nginx.conf, log'ai /var/log/nginx/.
+   EN: nginx: same sites-available/enabled idea, but symlink by hand;
+       nginx -t = configtest; main config /etc/nginx/nginx.conf,
+       logs in /var/log/nginx/.
+
+---------------------------------------------------------------------
+APACHE KITAME PRIEVADE (pvz. 8080, kontrolinio uzd_7) / APACHE ON PORT 8080
+---------------------------------------------------------------------
+   $ sudo nano /etc/apache2/ports.conf        → pridėti: Listen 8080
+   $ sudo nano /etc/apache2/sites-available/pavarde.conf
+       <VirtualHost *:8080>
+           DocumentRoot /var/www/pavarde
+           <Directory /var/www/pavarde> Require all granted </Directory>
+       </VirtualHost>
+   $ sudo a2ensite pavarde.conf && sudo systemctl restart apache2
+   $ sudo ss -tlnp | grep apache              # klausosi :80 ir :8080
+   $ curl http://localhost:8080

@@ -1,0 +1,243 @@
+=====================================================================
+02  DARBAS SU FAILAIS IR KATALOGAIS  /  WORKING WITH FILES AND DIRECTORIES
+=====================================================================
+Tikslas / Goal: kurti, kopijuoti, trinti, perkelti failus ir katalogus,
+peržiūrėti turinį, ieškoti failų.  /  create, copy, delete, move files
+and directories, view contents, search the filesystem.
+
+Pastaba / Note: "~" = Jūsų namų katalogas (/home/vardas).  "$" = eilinio
+vartotojo komandinė eilutė, "sudo" = vykdyti administratoriaus teisėmis.
+"~" = your home directory, "$" = normal user prompt, "sudo" = run as admin.
+
+---------------------------------------------------------------------
+1. Savo namų kataloge sukurkite katalogą Bandymas.
+---------------------------------------------------------------------
+   $ mkdir ~/Bandymas
+
+   LT: mkdir (make directory) sukuria naują katalogą.
+   EN: mkdir (make directory) creates a new directory.
+
+---------------------------------------------------------------------
+2. Kataloge Bandymas sukurkite failus f1..f4.txt, ff1..ff4.txt.
+---------------------------------------------------------------------
+   $ cd ~/Bandymas
+   $ touch f1.txt f2.txt f3.txt f4.txt ff1.txt ff2.txt ff3.txt ff4.txt
+
+   Trumpiau / shorter (bash brace expansion):
+   $ touch ~/Bandymas/{f,ff}{1,2,3,4}.txt
+
+   LT: touch sukuria tuščią failą (arba atnaujina esamo failo laiką).
+       {a,b}{1,2} bash'e išskleidžiama į a1 a2 b1 b2.
+   EN: touch creates an empty file (or updates an existing file's
+       timestamp). {a,b}{1,2} expands in bash to a1 a2 b1 b2.
+
+---------------------------------------------------------------------
+3. Pažiūrėkite katalogo Bandymas turinį.
+---------------------------------------------------------------------
+   $ ls ~/Bandymas
+   $ ls -l ~/Bandymas        # ilgas formatas / long format
+   $ ls -la ~/Bandymas       # + paslėpti failai / + hidden files
+
+   LT: ls (list) rodo katalogo turinį. -l = teisės, savininkas, dydis,
+       data; -a = rodyti ir paslėptus (prasidedančius tašku) failus.
+   EN: ls lists directory contents. -l = permissions, owner, size,
+       date; -a = also show hidden (dot) files.
+
+---------------------------------------------------------------------
+4. Savo namų kataloge sukurkite katalogą Tikslas.
+---------------------------------------------------------------------
+   $ mkdir ~/Tikslas
+
+---------------------------------------------------------------------
+5. Nukopijuokite f1.txt, f3.txt, ff2.txt, ff4.txt į katalogą Tikslas.
+---------------------------------------------------------------------
+   $ cp ~/Bandymas/f1.txt ~/Bandymas/f3.txt ~/Bandymas/ff2.txt ~/Bandymas/ff4.txt ~/Tikslas/
+   arba / or:
+   $ cp ~/Bandymas/{f1,f3,ff2,ff4}.txt ~/Tikslas/
+
+   LT: cp (copy) kopijuoja failus. Paskutinis argumentas – paskirties
+       katalogas. Katalogams reikia -r (rekursyviai).
+   EN: cp copies files. The last argument is the destination.
+       For directories you need -r (recursive).
+
+---------------------------------------------------------------------
+6. Pažiūrėkite katalogo Tikslas turinį.
+---------------------------------------------------------------------
+   $ ls -l ~/Tikslas
+
+---------------------------------------------------------------------
+7. Katalogo Tikslas failų vardus pakeiskite iš f*.txt į file*.txt.
+---------------------------------------------------------------------
+   Variantas A – po vieną / one by one (mv = move = rename):
+   $ cd ~/Tikslas
+   $ mv f1.txt file1.txt
+   $ mv f3.txt file3.txt
+   $ mv ff2.txt filef2.txt
+   $ mv ff4.txt filef4.txt
+
+   Variantas B – ciklu / with a loop:
+   $ cd ~/Tikslas
+   $ for f in f*.txt; do mv "$f" "file${f#f}"; done
+
+   Variantas C – rename įrankis (perl) / rename tool:
+   $ sudo apt install rename
+   $ rename 's/^f/file/' ~/Tikslas/f*.txt
+
+   LT: mv pervadina (perkelia) failą. ${f#f} nukerta pirmą "f" nuo
+       kintamojo pradžios. rename 's/^f/file/' pakeičia pirmą "f"
+       pavadinimo pradžioje į "file".
+   EN: mv renames (moves) a file. ${f#f} strips a leading "f" from the
+       variable. rename 's/^f/file/' replaces the leading "f" by "file".
+
+---------------------------------------------------------------------
+8. Perkelkite pervadintus failus į katalogą Bandymas.
+---------------------------------------------------------------------
+   $ mv ~/Tikslas/file*.txt ~/Bandymas/
+
+   LT: mv su keliais failais ir katalogu pabaigoje = perkėlimas.
+   EN: mv with several files and a directory last = move.
+
+---------------------------------------------------------------------
+9. Nukopijuokite failą passwd iš /etc į katalogą Bandymas.
+---------------------------------------------------------------------
+   $ cp /etc/passwd ~/Bandymas/
+
+   LT: /etc/passwd – sistemos vartotojų sąrašas (skaityti gali visi).
+   EN: /etc/passwd – list of system users (readable by everyone).
+
+---------------------------------------------------------------------
+10. Išveskite failo passwd turinį į ekraną.
+---------------------------------------------------------------------
+   $ cat ~/Bandymas/passwd
+   $ less ~/Bandymas/passwd      # puslapiais, q – išeiti / paged, q quits
+
+   LT: cat (concatenate) išveda visą failą; less leidžia slinkti.
+   EN: cat prints the whole file; less lets you scroll.
+
+---------------------------------------------------------------------
+11. Suraskite faile passwd žodį root. Rezultatą išveskite į ekraną.
+---------------------------------------------------------------------
+   $ grep root ~/Bandymas/passwd
+   $ grep -n root ~/Bandymas/passwd    # su eilučių numeriais / with line numbers
+
+   LT: grep ieško teksto šablono faile ir išveda eilutes, kuriose jis yra.
+   EN: grep searches a text pattern in a file and prints matching lines.
+
+---------------------------------------------------------------------
+12. Suskaičiuokite kiek yra simbolių faile passwd.
+---------------------------------------------------------------------
+   $ wc -m ~/Bandymas/passwd     # simboliai / characters
+   $ wc -c ~/Bandymas/passwd     # baitai / bytes
+   $ wc ~/Bandymas/passwd        # eilutės, žodžiai, baitai / lines, words, bytes
+
+   LT: wc (word count) skaičiuoja: -l eilutes, -w žodžius, -m simbolius,
+       -c baitus.
+   EN: wc counts: -l lines, -w words, -m characters, -c bytes.
+
+---------------------------------------------------------------------
+13. Išveskite 5 pirmas ir 5 paskutines failo passwd eilutes.
+---------------------------------------------------------------------
+   $ head -n 5 ~/Bandymas/passwd
+   $ tail -n 5 ~/Bandymas/passwd
+
+   LT: head rodo failo pradžią, tail – pabaigą (-n kiek eilučių,
+       numatyta 10). tail -f – stebėti augantį failą (log'us).
+   EN: head shows the start, tail the end (-n how many lines, default
+       10). tail -f follows a growing file (logs).
+
+---------------------------------------------------------------------
+14. Kataloge Tikslas sukurkite failo passwd simbolinę nuorodą.
+---------------------------------------------------------------------
+   $ ln -s ~/Bandymas/passwd ~/Tikslas/passwd
+
+   LT: ln -s sukuria simbolinę nuorodą (shortcut). Pirmas argumentas –
+       į ką rodo, antras – nuorodos vardas. Be -s būtų kieta nuoroda
+       (hard link).
+   EN: ln -s creates a symbolic link. First argument = target, second =
+       link name. Without -s it is a hard link.
+
+---------------------------------------------------------------------
+15. Pažiūrėkite katalogo Tikslas turinį.
+---------------------------------------------------------------------
+   $ ls -l ~/Tikslas
+   (matysite: passwd -> /home/vardas/Bandymas/passwd)
+
+---------------------------------------------------------------------
+16. Kataloge Bandymas ištrinkite failą passwd.
+---------------------------------------------------------------------
+   $ rm ~/Bandymas/passwd
+
+   LT: rm (remove) trina failus; rm -r katalogą su turiniu; rm -i klausia.
+   EN: rm deletes files; rm -r a directory with contents; rm -i asks.
+
+---------------------------------------------------------------------
+17. Pažiūrėkite katalogo Tikslas turinį.
+---------------------------------------------------------------------
+   $ ls -l ~/Tikslas
+   $ cat ~/Tikslas/passwd      # klaida: No such file or directory
+
+   LT: nuoroda liko, bet "sulūžusi" (rodoma raudonai) – originalas
+       ištrintas, simbolinė nuoroda tik rodo kelią į jį.
+   EN: the link remains but is "dangling" (shown in red) – the target
+       was deleted; a symlink only stores a path.
+
+---------------------------------------------------------------------
+18. Nukopijuokite failą fstab iš /etc į katalogą Tikslas.
+---------------------------------------------------------------------
+   $ cp /etc/fstab ~/Tikslas/
+
+---------------------------------------------------------------------
+19. Patikrinkite failo fstab dydį (baitais).
+---------------------------------------------------------------------
+   $ ls -l ~/Tikslas/fstab           # 5-as stulpelis / 5th column = bytes
+   $ stat -c %s ~/Tikslas/fstab      # tik skaičius / just the number
+   $ du -b ~/Tikslas/fstab
+   $ wc -c ~/Tikslas/fstab
+
+   LT: stat rodo failo metaduomenis (dydis, teisės, laikai); -c %s = dydis.
+   EN: stat shows file metadata; -c %s prints only the size in bytes.
+
+---------------------------------------------------------------------
+20. Sukurkite failą sorting.txt su eilutėmis apples, oranges, pears,
+    kiwis, bananas.
+---------------------------------------------------------------------
+   $ printf "apples\noranges\npears\nkiwis\nbananas\n" > ~/Bandymas/sorting.txt
+   arba / or:
+   $ echo -e "apples\noranges\npears\nkiwis\nbananas" > ~/Bandymas/sorting.txt
+   arba / or (heredoc):
+   $ cat > ~/Bandymas/sorting.txt <<EOT
+   apples
+   oranges
+   pears
+   kiwis
+   bananas
+   EOT
+
+   LT: > nukreipia išvestį į failą (perrašo), >> prideda gale. \n = nauja
+       eilutė. cat > failas skaito iš klaviatūros iki Ctrl+D (arba EOT).
+   EN: > redirects output to a file (overwrite), >> appends. \n = newline.
+       cat > file reads from keyboard until Ctrl+D (or the heredoc end).
+
+---------------------------------------------------------------------
+21. Surūšiuokite sorting.txt turinį pagal abėcėlę ir išveskite į ekraną.
+---------------------------------------------------------------------
+   $ sort ~/Bandymas/sorting.txt
+   $ sort -r ~/Bandymas/sorting.txt    # atvirkščiai / reverse
+   $ sort -u ~/Bandymas/sorting.txt    # be pasikartojimų / unique
+
+   LT: sort rūšiuoja eilutes. -n skaitiškai, -r atvirkščiai, -u unikalios.
+   EN: sort sorts lines. -n numeric, -r reverse, -u unique.
+
+---------------------------------------------------------------------
+22. Raskite, kur failų sistemoje yra failas ff2.txt.
+---------------------------------------------------------------------
+   $ find ~ -name ff2.txt
+   $ find / -name ff2.txt 2>/dev/null       # visoje sistemoje / whole system
+   $ sudo updatedb && locate ff2.txt        # reikia paketo plocate / needs plocate
+
+   LT: find <kur> -name <vardas> ieško realiu laiku. 2>/dev/null paslepia
+       klaidas "Permission denied". -iname – nepaisant raidžių dydžio.
+       locate ieško iš duomenų bazės (greitai), bet reikia updatedb.
+   EN: find <where> -name <name> searches in real time. 2>/dev/null hides
+       "Permission denied" errors. -iname ignores case. locate uses a
+       database (fast) but needs updatedb first.

@@ -1,0 +1,75 @@
+=====================================================================
+01  ĮVADAS Į OS  /  INTRODUCTION TO OPERATING SYSTEMS (santrauka iš OS-intro.pdf)
+=====================================================================
+Tarnybinė stotis (serveris) – kompiuteris, kuris tinkle aptarnauja kitus
+kompiuterius (duomenys, programos, failai).
+A server – a computer that serves other computers on a network.
+
+Operacinė sistema (OS) – pagrindinė programinė įranga, valdanti kompiuterio
+išteklius ir sudaranti aplinką programoms.
+An OS – core software managing hardware resources and running programs.
+
+Linux – OS branduolys (kernel), Linus Torvalds, 1991. Rūpinasi procesais,
+atmintimi, failų sistemomis, tvarkyklėmis, tinklu.
+GNU – Richard Stallman projektas (1983) sukurti laisvą Unix tipo OS;
+sukūrė įrankius (bash, gcc, coreutils...). Todėl GNU/Linux.
+Linux = kernel (1991, Torvalds). GNU = Stallman's 1983 free Unix-like
+project that made the userland tools. Hence GNU/Linux.
+
+Atvirasis kodas (open source) – išeities kodas prieinamas, galima nagrinėti,
+keisti, platinti pagal licenciją. / Source code is available to study,
+change and redistribute under a licence.
+
+Kodėl Linux: atviras kodas, lankstus, stabilus ir saugus (serveriai), daug
+distribucijų (Ubuntu, Mint, Fedora, Debian).
+Statistika 2025-2026: ~57% top 1M serverių, 100% top 500 superkompiuterių,
+~68% telefonų (Android), ~7.5% desktop.
+
+Distribucijos / distros: distrowatch.com. Ubuntu flavors: Lubuntu (LXQt +
+Openbox, lengva, mažai resursų), Kubuntu (KDE + Kwin, moderni, panaši į
+Windows), Xubuntu (XFCE), Ubuntu (GNOME).
+
+Linux vs Windows:
+  1. Linux – vienas failų medis (/), Windows – atskiri diskai (C:, D:).
+  2. Katalogų struktūra skirtinga.   3. Kelio skirtukas / vs \.
+  4. Nėra C: disko.   5. Raidžių dydis svarbus (a ≠ A, case-sensitive).
+  6. Plėtiniai nebūtini.   7. Stipriai remiasi failų teisėmis.
+
+Ubuntu failų sistemos katalogai / directory layout:
+  /        šaknis / root of the tree
+  /bin     bendros paleidžiamos programos (binaries)  (→ /usr/bin)
+  /sbin    administratoriaus programos (superuser binaries)
+  /etc     konfigūraciniai failai / config files (passwd, group, fstab, ssh/)
+  /home    vartotojų namų katalogai / user homes
+  /root    root vartotojo namai / root's home
+  /dev     įrenginių failai / device files (sda, tty, null)
+  /proc    veikiančių procesų ir branduolio info (virtuali) / process info
+  /sys     branduolio ir įrenginių info / kernel & devices
+  /tmp     laikini failai / temporary files
+  /var     kintami failai: log'ai (/var/log), web (/var/www), kešas
+  /lib     bibliotekos / libraries
+  /usr     vartotojų programos ir duomenys / user programs (bin, lib, share)
+  /opt     papildoma programinė įranga / optional 3rd-party software
+  /boot    branduolys ir įkrovos failai / kernel and bootloader
+  /mnt, /media   prijungti diskai / mounted drives
+
+Virtualizacija – virtuali serverio/OS reprezentacija, simuliuoja techninę
+įrangą, kelios VM viename kompiuteryje, debesijos pagrindas (VirtualBox,
+VMware, KVM).
+Virtualization – simulated hardware, several VMs on one machine, the basis
+of cloud computing.
+
+CPU architektūros / architectures: x86_64 (amd64) – staliniai/serveriai;
+ARM (aarch64) – telefonai, Raspberry Pi, Apple M serija, vis daugiau
+serverių. Patikrinti / check:  uname -m ; lscpu ; arch
+
+Naudingos pirmos komandos / first useful commands:
+  uname -a        branduolys / kernel info      lsb_release -a  Ubuntu versija
+  cat /etc/os-release                           hostname        kompiuterio vardas
+  whoami          kas aš                        pwd             kur esu
+  man komanda     žinynas (q išeiti)            komanda --help  trumpa pagalba
+  clear           išvalyti ekraną               history         komandų istorija
+  df -h           diskų vieta                   free -h         atmintis
+  lscpu ; lsblk ; lsusb ; lspci                 aparatūra / hardware
+  sudo komanda    vykdyti kaip root             sudo -i         root shell
+  Tab – užbaigimas / completion, ↑ – istorija, Ctrl+C – nutraukti, Ctrl+L – clear

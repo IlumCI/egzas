@@ -1,0 +1,178 @@
+=====================================================================
+06  BASH SCENARIJAI  /  BASH SCRIPTS
+=====================================================================
+Teorija / theory:
+  #!/bin/bash   – pirma eilutė (shebang): kuo vykdyti / which interpreter
+  chmod +x f.sh – leisti vykdyti / make executable;  ./f.sh arba bash f.sh
+  $1 $2 ...     – argumentai / arguments;  $# kiek / count;  $@ visi / all
+  $USER $HOME $0 – kintamieji / variables;  $(komanda) – komandos rezultatas
+  read -p "Klausimas: " kint  – įvestis iš klaviatūros / keyboard input
+  if [ -z "$x" ]; then ...; fi   – sąlyga / condition (-z tuščias, -d katalogas, -f failas)
+  echo "..."    – išvesti / print;  exit 1 – baigti su klaida / exit with error
+
+---------------------------------------------------------------------
+1. Sukurkite katalogą ~/scripts.
+---------------------------------------------------------------------
+   $ mkdir ~/scripts
+
+---------------------------------------------------------------------
+2-3. Sukurkite sys_upgr.sh – scenarijų, kuris atnaujina sistemą.
+---------------------------------------------------------------------
+   $ nano ~/scripts/sys_upgr.sh
+   ------------------------------ sys_upgr.sh ------------------------
+   #!/bin/bash
+   # Atnaujina Ubuntu sistemą / Updates the Ubuntu system
+   echo "Atnaujinami paketų sąrašai..."
+   sudo apt update
+   echo "Diegiami atnaujinimai..."
+   sudo apt upgrade -y
+   sudo apt autoremove -y
+   echo "Sistema atnaujinta. Įdiegtų paketų: $(dpkg -l | grep -c '^ii')"
+   -------------------------------------------------------------------
+   (arba be nano / or without nano:)
+   $ printf '#!/bin/bash\nsudo apt update\nsudo apt upgrade -y\n' > ~/scripts/sys_upgr.sh
+
+   LT: apt update – atnaujina sąrašus, apt upgrade – diegia; -y atsako
+       "taip" automatiškai. dpkg -l | grep -c '^ii' suskaičiuoja įdiegtus.
+   EN: apt update refreshes lists, apt upgrade installs; -y answers yes.
+       dpkg -l | grep -c '^ii' counts installed packages.
+
+---------------------------------------------------------------------
+4. Išbandykite sys_upgr.sh.
+---------------------------------------------------------------------
+   $ chmod +x ~/scripts/sys_upgr.sh
+   $ ~/scripts/sys_upgr.sh
+   arba / or:  bash ~/scripts/sys_upgr.sh   (be chmod / no chmod needed)
+
+---------------------------------------------------------------------
+5-6. user_ps.sh – įrašo į user_ps.txt visus grupės root procesus.
+---------------------------------------------------------------------
+   $ nano ~/scripts/user_ps.sh
+   ------------------------------ user_ps.sh -------------------------
+   #!/bin/bash
+   # Grupės root procesai į user_ps.txt / processes of group root to user_ps.txt
+   ps -G root -o user,group,pid,stat,cmd > ~/scripts/user_ps.txt
+   echo "Įrašyta $(wc -l < ~/scripts/user_ps.txt) eilučių į user_ps.txt"
+   -------------------------------------------------------------------
+   Alternatyvos / alternatives inside the script:
+   ps -eo user,group,pid,cmd | awk '$2=="root"' > ~/scripts/user_ps.txt
+   ps aux | grep '^root' > ~/scripts/user_ps.txt       # pagal vartotoją root / by user root
+
+   LT: ps -G root – procesai, kurių reali grupė yra root; -o – kokius
+       stulpelius rodyti.
+   EN: ps -G root – processes whose real group is root; -o – which columns.
+
+---------------------------------------------------------------------
+7-8. Išbandykite ir pažiūrėkite user_ps.txt.
+---------------------------------------------------------------------
+   $ chmod +x ~/scripts/user_ps.sh
+   $ ~/scripts/user_ps.sh
+   $ cat ~/scripts/user_ps.txt
+   $ less ~/scripts/user_ps.txt
+
+---------------------------------------------------------------------
+9. Scenarijus, kuris sukuria vartotoją ir prisijungia prie jo.
+---------------------------------------------------------------------
+   ------------------------------ new_user.sh ------------------------
+   #!/bin/bash
+   VARDAS="naujokas"
+   sudo useradd -m -s /bin/bash "$VARDAS"
+   sudo passwd "$VARDAS"
+   su - "$VARDAS"
+   -------------------------------------------------------------------
+   $ chmod +x ~/scripts/new_user.sh && ~/scripts/new_user.sh
+
+---------------------------------------------------------------------
+*10. Tas pats, bet vardą paduodant paleidžiant scenarijų.
+---------------------------------------------------------------------
+   ------------------------------ new_user.sh ------------------------
+   #!/bin/bash
+   # Naudojimas / usage: ./new_user.sh vardas
+   if [ -z "$1" ]; then
+       echo "Naudojimas: $0 <vartotojo_vardas>"
+       exit 1
+   fi
+   VARDAS="$1"
+   if id "$VARDAS" &>/dev/null; then
+       echo "Vartotojas $VARDAS jau egzistuoja"
+   else
+       sudo useradd -m -s /bin/bash "$VARDAS"
+       sudo passwd "$VARDAS"
+   fi
+   su - "$VARDAS"
+   -------------------------------------------------------------------
+   $ ~/scripts/new_user.sh pingvinas
+
+   LT: $1 – pirmas argumentas; [ -z "$1" ] – ar tuščias; $0 – scenarijaus
+       vardas; id vardas &>/dev/null – tikrina ar vartotojas yra.
+   EN: $1 – first argument; [ -z "$1" ] – is it empty; $0 – script name;
+       id name &>/dev/null – checks whether the user exists.
+
+---------------------------------------------------------------------
+*11. Scenarijus: katalogas ir jo failai prieinami tik root.
+---------------------------------------------------------------------
+   ------------------------------ root_only.sh -----------------------
+   #!/bin/bash
+   KATALOGAS="$HOME/slaptas"
+   sudo chown -R root:root "$KATALOGAS"
+   sudo chmod -R u=rwX,go= "$KATALOGAS"      # katalogai 700, failai 600
+   sudo ls -ld "$KATALOGAS"
+   -------------------------------------------------------------------
+
+   LT: chown -R – rekursyviai savininkas ir grupė root; chmod u=rwX,go=
+       – savininkui rwx (X – x tik katalogams/vykdomiems), grupei ir
+       kitiems nieko. Paprasčiau: chmod -R 700 (bet failai gautų x).
+   EN: chown -R – owner and group root recursively; chmod u=rwX,go= –
+       owner rwx (X gives x only to dirs/executables), group/others
+       nothing. Simpler: chmod -R 700 (files would get x too).
+
+---------------------------------------------------------------------
+*12. Tas pats, katalogą nurodant paleidžiant.
+---------------------------------------------------------------------
+   ------------------------------ root_only.sh -----------------------
+   #!/bin/bash
+   # Naudojimas / usage: ./root_only.sh /kelias/iki/katalogo
+   if [ -z "$1" ]; then
+       echo "Naudojimas: $0 <katalogas>"; exit 1
+   fi
+   if [ ! -d "$1" ]; then
+       echo "Klaida: $1 nėra katalogas"; exit 1
+   fi
+   sudo chown -R root:root "$1"
+   sudo chmod -R u=rwX,go= "$1"
+   echo "Katalogas $1 dabar prieinamas tik root"
+   sudo ls -ld "$1"
+   -------------------------------------------------------------------
+   $ ~/scripts/root_only.sh ~/slaptas
+
+   LT: [ ! -d "$1" ] – jei NE katalogas.
+   EN: [ ! -d "$1" ] – if NOT a directory.
+
+---------------------------------------------------------------------
+*13. Scenarijus, kuris pasisveikina su vartotoju jo vardu (read).
+---------------------------------------------------------------------
+   ------------------------------ hello.sh ---------------------------
+   #!/bin/bash
+   read -p "Koks tavo vardas? " vardas
+   echo "Labas, $vardas! Sveikas atvykęs į $(hostname)."
+   echo "Hello, $vardas! Today is $(date +%Y-%m-%d)."
+   -------------------------------------------------------------------
+   Be klausimo, iš sistemos / without asking, from the system:
+   echo "Labas, $USER!"  arba  echo "Labas, $(whoami)!"
+
+   LT: read -p "tekstas" kint – parodo tekstą ir įrašo įvestį į kintamąjį.
+   EN: read -p "prompt" var – shows the prompt and stores input in var.
+
+---------------------------------------------------------------------
+PAPILDOMI PAVYZDŽIAI / EXTRA (kontroliniui / for the test)
+---------------------------------------------------------------------
+   Suskaičiuoti visus failus namų kataloge (su pakatalogiais) / count all
+   files in home incl. subdirs:
+   ------------------------------ count_files.sh ---------------------
+   #!/bin/bash
+   KIEK=$(find ~ -type f 2>/dev/null | wc -l)
+   echo "Namų kataloge yra $KIEK failų"
+   -------------------------------------------------------------------
+   for ciklas / loop:   for f in *.txt; do echo "$f"; done
+   while:               while read eil; do echo "$eil"; done < failas
+   funkcija / function: sveikink() { echo "Labas $1"; }; sveikink Jonas

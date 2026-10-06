@@ -1,0 +1,46 @@
+=====================================================================
+KARTOJIMAS + APLINKOS KINTAMIEJI  /  ENVIRONMENT VARIABLES (santrauka)
+=====================================================================
+Kintamasis / variable:  VARDAS=reikšmė   (be tarpų! / no spaces)
+   $ MANO="labas"          tik šiam shell'ui / shell-local
+   $ echo $MANO            išvesti / print
+   $ export MANO           padaryti aplinkos kintamuoju (matys vaikiniai
+                           procesai) / export to child processes
+   $ export KELIAS=/opt/programa
+   $ unset MANO            ištrinti / remove
+
+Peržiūra / view:
+   $ env  |  printenv      visi aplinkos kintamieji / all env vars
+   $ printenv HOME         vienas / one
+   $ set                   ir shell kintamieji, funkcijos / incl. shell vars
+   $ echo $PATH $HOME $USER $SHELL $PWD $LANG $HOSTNAME $?
+
+Svarbūs / important:
+   PATH   katalogai, kuriuose ieškoma komandų (atskirti :) / where commands are searched
+          $ export PATH=$PATH:$HOME/scripts     (pridėti katalogą / add a dir)
+   HOME   namų katalogas        USER  vartotojas        SHELL  apvalkalas
+   PWD    dabartinis katalogas  OLDPWD ankstesnis       LANG   kalba/lokalė
+   EDITOR numatytas redaktorius ($ export EDITOR=nano)   $?  paskutinės komandos kodas (0 = ok)
+   $0 $1 $# $@ $$ – scenarijaus vardas, argumentai, kiek, visi, PID
+
+Nuolatinis nustatymas / make permanent:
+   ~/.bashrc        kiekvienam interaktyviam shell'ui / every interactive shell
+   ~/.profile       prisijungus / at login
+   /etc/environment visiems vartotojams (VARDAS=reikšmė, be export) / system-wide
+   /etc/profile, /etc/bash.bashrc  sistemos lygio / system-wide shell init
+   $ echo 'export PATH=$PATH:$HOME/scripts' >> ~/.bashrc
+   $ source ~/.bashrc     (perskaityti iš naujo / reload)
+
+Alias:
+   $ alias ll='ls -la'  ;  alias  ;  unalias ll   (į ~/.bashrc, kad liktų)
+
+Kabutės / quoting:
+   "..."  kintamieji išskleidžiami / variables expanded:  echo "Labas $USER"
+   '...'  pažodžiui / literal:  echo 'Labas $USER'  → Labas $USER
+   $(komanda) arba `komanda` – komandos rezultatas / command substitution
+   $ echo "Šiandien $(date +%F), failų: $(ls | wc -l)"
+
+which / type / whereis:
+   $ which ls        kur komanda PATH'e / where the command is in PATH
+   $ type cd         builtin ar programa / builtin or program
+   $ whereis bash    binaras, man, šaltinis

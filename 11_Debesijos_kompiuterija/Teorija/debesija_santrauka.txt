@@ -1,0 +1,40 @@
+=====================================================================
+11  DEBESIJOS KOMPIUTERIJA  /  CLOUD COMPUTING (santrauka, užduoties nebuvo)
+=====================================================================
+Debesija (cloud computing) – skaičiavimo išteklių (serverių, saugyklų,
+tinklų, programų) tiekimas internetu pagal poreikį, mokant už naudojimą.
+Cloud computing – on-demand delivery of compute, storage, network and
+software over the internet, pay-as-you-go.
+
+Paslaugų modeliai / service models:
+   IaaS  Infrastructure as a Service – virtualūs serveriai, diskai, tinklas
+         (AWS EC2, Azure VM, Google Compute Engine, DigitalOcean, Hetzner)
+   PaaS  Platform as a Service – platforma kodui be serverių valdymo
+         (Heroku, Google App Engine, Azure App Service, Vercel)
+   SaaS  Software as a Service – paruošta programa naršyklėje
+         (Gmail, Microsoft 365, Dropbox, Teams)
+   FaaS / serverless – funkcijos pagal įvykius (AWS Lambda, Azure Functions)
+
+Diegimo modeliai / deployment models: viešasis (public), privatus
+(private), hibridinis (hybrid), bendruomeninis (community).
+
+Pagrindiniai tiekėjai / big providers: AWS, Microsoft Azure, Google Cloud,
++ Oracle, IBM, Alibaba, DigitalOcean, Hetzner, OVH.
+
+Savybės / characteristics (NIST): savitarna pagal poreikį, plati tinklo
+prieiga, išteklių telkimas, greitas elastingumas (scaling), matuojama
+paslauga.
+
+Pagrindas / foundations: virtualizacija (VM, hipervizorius: KVM, Hyper-V,
+VMware, VirtualBox), konteineriai (Docker), orkestravimas (Kubernetes),
+objektinė saugykla (S3), CDN, krovinio balansavimas (load balancer),
+IaC – infrastruktūra kaip kodas (Terraform, Ansible).
+
+Privalumai / pros: nereikia pirkti serverių, greita plėtra, mokėjimas už
+naudojimą, prieinamumas iš visur, atsarginės kopijos.
+Trūkumai / cons: priklausomybė nuo tiekėjo (vendor lock-in), duomenų
+saugumas/vieta (GDPR), kaštai augant, reikia interneto.
+
+Praktika / practical: Ubuntu VM debesyje pasiekiama per SSH
+(ssh -i raktas.pem ubuntu@IP), ten tos pačios komandos: apt, systemctl,
+ufw, apache2/nginx, docker.

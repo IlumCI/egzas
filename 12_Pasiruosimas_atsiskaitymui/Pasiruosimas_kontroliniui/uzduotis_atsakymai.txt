@@ -1,0 +1,218 @@
+=====================================================================
+12  PASIRUOŠIMAS KONTROLINIUI  /  TEST PREPARATION
+=====================================================================
+
+#####################################################################
+PIRMAS DARBAS: egzamino užduotis (30 min)
+#####################################################################
+
+---------------------------------------------------------------------
+1. Vartotojas "paskutinis", namų katalogas "atodusis", administratoriaus
+   teisės.
+---------------------------------------------------------------------
+   $ sudo useradd -m -d /home/atodusis -s /bin/bash -G sudo paskutinis
+   $ sudo passwd paskutinis
+   $ id paskutinis ; ls -ld /home/atodusis
+
+---------------------------------------------------------------------
+2. Prisijunkite kaip paskutinis.
+---------------------------------------------------------------------
+   $ su - paskutinis
+   $ whoami ; pwd              # paskutinis ; /home/atodusis
+
+---------------------------------------------------------------------
+3. Namų kataloge sukurkite katalogą random_name.
+---------------------------------------------------------------------
+   $ mkdir ~/random_name
+
+---------------------------------------------------------------------
+4. Namų kataloge sukurkite sisteminio failo su visų vartotojų sąrašu
+   kopiją vardu kopija.
+---------------------------------------------------------------------
+   $ cp /etc/passwd ~/kopija
+
+   LT: vartotojų sąrašas = /etc/passwd.
+   EN: the user list = /etc/passwd.
+
+---------------------------------------------------------------------
+5. Perkelkite kopija į random_name.
+---------------------------------------------------------------------
+   $ mv ~/kopija ~/random_name/
+
+---------------------------------------------------------------------
+6. Pažiūrėkite failo kopija teises ir dydį.
+---------------------------------------------------------------------
+   $ ls -l ~/random_name/kopija
+   $ stat ~/random_name/kopija
+
+---------------------------------------------------------------------
+7. Atnaujinkite sistemą (2 komandos).
+---------------------------------------------------------------------
+   $ sudo apt update
+   $ sudo apt upgrade -y
+
+---------------------------------------------------------------------
+8. Įsirašykite paketą sl.
+---------------------------------------------------------------------
+   $ sudo apt install sl
+
+---------------------------------------------------------------------
+9. Patikrinkite sl veikimą.
+---------------------------------------------------------------------
+   $ sl              # pravažiuoja traukinys / a train drives across the terminal
+   $ /usr/games/sl   # jei neranda PATH'e / if not in PATH
+
+---------------------------------------------------------------------
+10. Prie failo kopija prijunkite eilutę su dabartinio vartotojo vardu ir
+    koduotu slaptažodžiu (iš failo shadow).
+---------------------------------------------------------------------
+   $ sudo grep "^$USER:" /etc/shadow >> ~/random_name/kopija
+   arba / or:
+   $ sudo grep paskutinis /etc/shadow | tee -a ~/random_name/kopija
+   $ tail -n 1 ~/random_name/kopija
+
+   LT: /etc/shadow skaito tik root → sudo. grep "^vardas:" – eilutė,
+       prasidedanti vardu. >> prideda failo gale. (Su sudo ir >> –
+       nukreipimą daro Jūsų shell be sudo, todėl failas turi būti Jūsų;
+       jei ne – naudokite tee -a.)
+   EN: /etc/shadow is root-only → sudo. grep "^user:" – line starting
+       with the name. >> appends. (The redirection runs in your shell
+       without sudo, so the file must be yours; otherwise use tee -a.)
+
+#####################################################################
+ANTRAS DARBAS: buvusi kontrolinio užduotis (180 min) – uzd_1 .. uzd_7
+#####################################################################
+
+---------------------------------------------------------------------
+uzd_1. VirtualBox'e įdiekite GNU/Linux (Ubuntu Server / Xubuntu / Debian):
+       1 CPU, 10 GB diskas, 2 GB RAM, vartotojas exam_your_name,
+       slaptažodis exam.
+---------------------------------------------------------------------
+   VirtualBox → New → Name, ISO → Hardware: 2048 MB RAM, 1 CPU → Hard
+   disk 10 GB → Create → Start → diegimo vedlyje: username exam_vardas,
+   password exam. Po diegimo / after install:
+   $ whoami ; hostname ; free -h ; nproc ; df -h /
+   (Ubuntu Server diegimo metu pažymėkite "Install OpenSSH server".)
+   Tinklas: Settings → Network → Bridged (kad Host matytų VM IP) arba
+   NAT + Port Forwarding (host 10443 → guest 10443).
+
+---------------------------------------------------------------------
+uzd_2. Įdiekite OpenSSH serverį: Port 10443, Protocol 2,
+       PermitRootLogin no, AllowUsers exam_your_name.
+---------------------------------------------------------------------
+   $ sudo apt update && sudo apt install -y openssh-server
+   $ sudo nano /etc/ssh/sshd_config
+       Port 10443
+       Protocol 2
+       PermitRootLogin no
+       AllowUsers exam_vardas
+   $ sudo sshd -t
+   $ sudo systemctl daemon-reload
+   $ sudo systemctl restart ssh.socket ssh        # Ubuntu 22.10+ socket aktyvacija
+   (arba: sudo systemctl disable --now ssh.socket; sudo systemctl enable --now ssh)
+   $ sudo ss -tlnp | grep 10443
+   $ sudo ufw allow 10443/tcp
+   $ hostname -I
+
+---------------------------------------------------------------------
+uzd_3. Per PuTTY prisijunkite prie Linux, patikrinkite kas prisijungęs ir
+       ką veikia. Toliau – tik per PuTTY.
+---------------------------------------------------------------------
+   PuTTY: Host Name = <VM_IP>, Port = 10443, Connection type SSH → Open
+   → login as: exam_vardas, password: exam.
+   (PowerShell alternatyva: ssh -p 10443 exam_vardas@<VM_IP>)
+   $ who          # kas prisijungęs / who is logged in
+   $ w            # kas prisijungęs ir ką daro / and what they run
+   $ last -n 5    # paskutiniai prisijungimai / recent logins
+
+---------------------------------------------------------------------
+uzd_4. ~/Exam; nukopijuoti /etc/passwd ir /etc/group; pervadinti į
+       passwd_copy ir group_copy; simbolinė nuoroda į /etc/hostname;
+       kiek simbolių group_copy.
+---------------------------------------------------------------------
+   $ mkdir ~/Exam
+   $ cp /etc/passwd /etc/group ~/Exam/
+   $ mv ~/Exam/passwd ~/Exam/passwd_copy
+   $ mv ~/Exam/group ~/Exam/group_copy
+   $ ln -s /etc/hostname ~/Exam/hostname
+   $ wc -m ~/Exam/group_copy
+   $ ls -l ~/Exam
+
+---------------------------------------------------------------------
+uzd_5. Kiek vartotojų ir grupių; grupė techin; vartotojas boss (pagr.
+       grupė users, papildomos techin ir sudo, namai /home/boss,
+       slaptažodis boss); boss grupės; boss procesai → user_proc.txt.
+---------------------------------------------------------------------
+   $ wc -l /etc/passwd                 # vartotojų skaičius / number of users
+   $ wc -l /etc/group                  # grupių skaičius / number of groups
+   $ getent passwd | wc -l ; getent group | wc -l
+   $ sudo groupadd techin
+   $ sudo useradd -m -d /home/boss -g users -G techin,sudo -s /bin/bash boss
+   $ echo "boss:boss" | sudo chpasswd      # arba sudo passwd boss
+   $ groups boss ; id boss
+   $ su - boss                             # kad būtų procesų / so boss has processes
+   $ ps -u boss
+   $ ps -u boss > ~/user_proc.txt          # (~ = /home/boss, jei esate boss)
+   $ cat ~/user_proc.txt
+
+---------------------------------------------------------------------
+uzd_6. Scenarijus sys-upgrade.sh: atnaujina sistemą ir išveda, kiek
+       paketų įdiegta. Supakuoti į script.tar.gz.
+---------------------------------------------------------------------
+   $ nano ~/sys-upgrade.sh
+   ------------------------------ sys-upgrade.sh ---------------------
+   #!/bin/bash
+   sudo apt update
+   sudo apt upgrade -y
+   echo "Įdiegtų paketų skaičius: $(dpkg -l | grep -c '^ii')"
+   # alternatyva / alternative: dpkg-query -f '.\n' -W | wc -l
+   -------------------------------------------------------------------
+   $ chmod +x ~/sys-upgrade.sh
+   $ ./sys-upgrade.sh
+   $ tar -czvf script.tar.gz sys-upgrade.sh
+   $ tar -tzvf script.tar.gz               # patikrinti / verify
+
+   LT: dpkg -l – visi paketai; eilutės "ii" = įdiegtas; grep -c skaičiuoja.
+       tar -czvf = create, gzip, verbose, file.
+   EN: dpkg -l – all packages; "ii" lines = installed; grep -c counts.
+       tar -czvf = create, gzip, verbose, file.
+
+---------------------------------------------------------------------
+uzd_7. Apache: ar veikia; statinė svetainė prievade 8080, katalogas
+       /var/www/your_surname, index.html su nurodytu turiniu.
+---------------------------------------------------------------------
+   $ systemctl status apache2 || sudo apt install -y apache2
+   $ sudo systemctl enable --now apache2
+   $ sudo mkdir -p /var/www/pavarde
+   $ sudo nano /var/www/pavarde/index.html
+   ------------------------------ index.html -------------------------
+   <!DOCTYPE html>
+   <html>
+       <head>
+           <title>Vardas Pavarde</title>
+       </head>
+       <body>
+           <h1>This is my first Linux exam!</h1>
+           <p>Linux is an operating system</p>
+       </body>
+   </html>
+   -------------------------------------------------------------------
+   $ sudo chown -R www-data:www-data /var/www/pavarde
+   $ echo "Listen 8080" | sudo tee -a /etc/apache2/ports.conf
+   $ sudo nano /etc/apache2/sites-available/pavarde.conf
+   ------------------------------ pavarde.conf -----------------------
+   <VirtualHost *:8080>
+       ServerName pavarde.local
+       DocumentRoot /var/www/pavarde
+       <Directory /var/www/pavarde>
+           Require all granted
+       </Directory>
+   </VirtualHost>
+   -------------------------------------------------------------------
+   $ sudo a2ensite pavarde.conf
+   $ sudo apachectl configtest
+   $ sudo systemctl restart apache2
+   $ sudo ufw allow 8080/tcp
+   $ curl http://localhost:8080
+   Naršyklė (Host) / browser: http://<VM_IP>:8080
+   (VirtualBox NAT: port forwarding 8080 → 8080.)

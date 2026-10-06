@@ -1,0 +1,120 @@
+=====================================================================
+DARBAS SU TEKSTO REDAKTORIAIS (nano, vim)  /  TEXT EDITORS
+=====================================================================
+NANO klavišai / keys (^ = Ctrl, M- = Alt):
+   ^G pagalba/help   ^O įrašyti/save   ^X išeiti/exit   ^W ieškoti/search
+   ^\ pakeisti/replace   ^K iškirpti eilutę/cut line   ^U įklijuoti/paste
+   ^J išlygiuoti/justify   M-N eilučių numeriai/line numbers
+   ^C pozicija (eilutė/stulpelis)/cursor position   ^_ eiti į eilutę/go to line
+   M-/ failo pabaiga/end of file   M-\ failo pradžia/start   ^A/^E eilutės pradžia/pabaiga
+VIM režimai / modes: Normal (Esc), Insert (i, a, o), Command (:)
+   :w įrašyti/save  :q išeiti/quit  :wq abu/both  :q! išeiti neįrašant/discard
+   i įterpti/insert  o nauja eilutė žemiau/new line below  dd ištrinti eilutę/delete line
+   yy kopijuoti/yank  p įklijuoti/paste  u atšaukti/undo  gg pradžia/top  G pabaiga/end
+   /žodis ieškoti/search (n – kitas/next)  :%s/sena/nauja/g pakeisti visur/replace all
+   :set number  eilučių numeriai/line numbers   gqip / gggqG  išlygiuoti/justify
+
+---------------------------------------------------------------------
+1. Susipažinkite su nano ir vim (man, vimtutor, Ctrl+G).
+---------------------------------------------------------------------
+   $ man nano
+   $ man vim
+   $ vimtutor               # interaktyvi vim pamoka / interactive vim lesson
+   $ nano  → Ctrl+G         # nano pagalba / nano help
+   $ vim   → :help          # vim pagalba (:q išeiti)
+   (jei nėra vim: sudo apt install vim)
+
+---------------------------------------------------------------------
+2. Sukurkite katalogą Tekstas su failais text1.txt, text2.txt.
+---------------------------------------------------------------------
+   $ mkdir ~/Tekstas
+   $ touch ~/Tekstas/text1.txt ~/Tekstas/text2.txt
+
+---------------------------------------------------------------------
+3. Nenaudojant redaktoriaus įrašykite į text1.txt tekstą "The point of
+   using Lorem Ipsum ...".
+---------------------------------------------------------------------
+   $ echo "The point of using Lorem Ipsum is that it has a more-or-less normal distribution of letters, as opposed to using 'Content here, content here', making it look like readable English. Many desktop publishing packages and web page editors now use Lorem Ipsum as their default model text, and a search for 'Lorem Ipsum' will uncover many web sites still in their infancy." > ~/Tekstas/text1.txt
+   $ cat ~/Tekstas/text1.txt
+
+   LT: echo "tekstas" > failas – perrašo failą; >> pridėtų gale.
+       Tekstas dvigubose kabutėse, nes viduje yra viengubos kabutės.
+   EN: echo "text" > file – overwrites; >> would append. Double quotes
+       because the text contains single quotes.
+
+---------------------------------------------------------------------
+4. Išlygiuokite tekstą (Justify) ir patikrinkite, kiek eilučių.
+---------------------------------------------------------------------
+   nano:
+   $ nano ~/Tekstas/text1.txt
+     Ctrl+J   – išlygiuoti pastraipą (justify) į ~terminalo pločio eilutes
+     Alt+N    – įjungti eilučių numeravimą (line numbering)
+     Ctrl+C   – rodo "line X/Y" (dabartinė eilutė / iš viso)
+     Ctrl+O, Enter – įrašyti; Ctrl+X – išeiti
+   vim:
+   $ vim ~/Tekstas/text1.txt
+     :set textwidth=72   (eilutės plotis / line width)
+     gggqG               (gg – į pradžią, gq – formatuoti, G – iki galo)
+     :set number         (numeriai / line numbers)
+     :wq
+   Patikrinti iš terminalo / check from terminal:
+   $ wc -l ~/Tekstas/text1.txt
+   $ fold -s -w 72 ~/Tekstas/text1.txt     # išlygiuoti be redaktoriaus / wrap without editor
+
+---------------------------------------------------------------------
+5. Pakeiskite visus "Lorem Ipsum" į "Hello World" (Replace).
+---------------------------------------------------------------------
+   nano:  Ctrl+\  → įveskite Lorem Ipsum, Enter → Hello World, Enter →
+          A (All – visus) ; Ctrl+O, Ctrl+X
+   vim:   :%s/Lorem Ipsum/Hello World/g   → :wq
+          (% – visos eilutės, s – substitute, g – visi atvejai eilutėje)
+   Be redaktoriaus / without an editor:
+   $ sed -i 's/Lorem Ipsum/Hello World/g' ~/Tekstas/text1.txt
+   $ grep -c "Hello World" ~/Tekstas/text1.txt
+
+   LT: sed -i keičia failą vietoje (in place); s/sena/nauja/g.
+   EN: sed -i edits the file in place; s/old/new/g.
+
+---------------------------------------------------------------------
+6. Nukopijuokite /etc/services turinį į text2.txt.
+---------------------------------------------------------------------
+   $ cp /etc/services ~/Tekstas/text2.txt
+   arba / or:
+   $ cat /etc/services > ~/Tekstas/text2.txt
+
+---------------------------------------------------------------------
+7. Suraskite žodį mokinys faile text2.txt.
+---------------------------------------------------------------------
+   nano:  Ctrl+W → mokinys → Enter   ("Not found" – jo ten nėra / it isn't there)
+   vim:   /mokinys  Enter  (n – kitas / next, N – ankstesnis / previous)
+   $ grep -n mokinys ~/Tekstas/text2.txt      # iš terminalo / from terminal
+
+---------------------------------------------------------------------
+8. Pridėkite failo text2.txt pabaigoje "Tai mano Vardas Pavardė failas".
+---------------------------------------------------------------------
+   nano:  $ nano ~/Tekstas/text2.txt → Alt+/ (į pabaigą) → Enter →
+          įrašyti tekstą → Ctrl+O, Enter, Ctrl+X
+   vim:   $ vim ~/Tekstas/text2.txt → G (į pabaigą) → o (nauja eilutė žemiau,
+          insert režimas) → įrašyti tekstą → Esc → :wq
+   Be redaktoriaus / without editor:
+   $ echo "Tai mano J. K. failas" >> ~/Tekstas/text2.txt
+   $ tail -n 2 ~/Tekstas/text2.txt
+
+   Greitai atidaryti failo pabaigoje / open at end: nano +9999 failas ; vim + failas
+
+---------------------------------------------------------------------
+9.* Sunumeruokite visas failo text2.txt eilutes.
+---------------------------------------------------------------------
+   $ nl ~/Tekstas/text2.txt > ~/Tekstas/text2_num.txt
+   $ cat -n ~/Tekstas/text2.txt > ~/Tekstas/text2_num.txt
+   Įrašyti į tą patį failą / same file:
+   $ nl -ba ~/Tekstas/text2.txt > /tmp/t && mv /tmp/t ~/Tekstas/text2.txt
+   vim viduje / inside vim:
+     :%!nl -ba        (perfiltruoti visą failą per nl / filter file through nl)
+     :%s/^/\=line('.').' '/
+   nano:  Alt+N tik rodo numerius, failo nekeičia / only displays, doesn't save.
+
+   LT: nl numeruoja netuščias eilutes (-ba – visas); cat -n – visas.
+       :%!cmd vim'e pakeičia failo turinį komandos išvestimi.
+   EN: nl numbers non-empty lines (-ba – all); cat -n – all lines.
+       :%!cmd in vim replaces the buffer with the command's output.

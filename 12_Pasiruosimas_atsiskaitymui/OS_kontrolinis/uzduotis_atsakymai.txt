@@ -1,0 +1,224 @@
+=====================================================================
+12  OS KONTROLINIS (21 taškas)  /  OS TEST
+=====================================================================
+Reikalavimai: kiekvienam punktui atskira ekrano nuotrauka uzd_1, uzd_2...
+Atsakymai – archyve VardasPavarde.zip:
+   $ zip VardasPavarde.zip uzd_*.png     (arba Word dokumentas)
+VP = Jūsų inicialai, pvz. laikymasJK.
+
+---------------------------------------------------------------------
+1. Vartotojas laikymasVP: namų katalogas laikymas, pagrindinė grupė users,
+   papildomos audio ir video, interpretatorius bash.  (1 t.)
+---------------------------------------------------------------------
+   $ sudo useradd -m -d /home/laikymas -g users -G audio,video -s /bin/bash laikymasVP
+   $ sudo passwd laikymasVP
+   $ id laikymasVP ; ls -ld /home/laikymas
+
+   LT: -m sukurti namus, -d kelias, -g pagrindinė grupė, -G papildomos,
+       -s shell. passwd – būtinas, kad galėtumėte prisijungti.
+   EN: -m create home, -d path, -g primary group, -G extra groups,
+       -s shell. passwd is needed to be able to log in.
+
+---------------------------------------------------------------------
+2. Atimkite teisę klausytis garsų (audio). Pridėkite administratoriaus
+   teises (sudo).  (1 t.)
+---------------------------------------------------------------------
+   $ sudo gpasswd -d laikymasVP audio
+   $ sudo usermod -aG sudo laikymasVP
+   $ groups laikymasVP          # users video sudo
+
+---------------------------------------------------------------------
+3. Prisijunkite ką tik sukurtu vartotoju.  (1 t.)
+---------------------------------------------------------------------
+   $ su - laikymasVP
+   $ whoami ; pwd
+
+---------------------------------------------------------------------
+4. Namų kataloge sukurkite katalogus rytas ir vakaras, failus labas ir
+   viso.  (1 t.)
+---------------------------------------------------------------------
+   $ cd ~
+   $ mkdir rytas vakaras
+   $ touch labas viso
+   $ ls -l
+
+---------------------------------------------------------------------
+5. Nukopijuokite labas ir viso į rytas. Visą rytas turinį perkelkite į
+   vakaras.  (1 t.)
+---------------------------------------------------------------------
+   $ cp labas viso rytas/
+   $ mv rytas/* vakaras/
+   $ ls rytas vakaras
+
+---------------------------------------------------------------------
+6. Ištrinkite 5 punkte sukurtus failus ir katalogus.  (1 t.)
+---------------------------------------------------------------------
+   $ rm -r rytas vakaras labas viso
+   $ ls
+
+---------------------------------------------------------------------
+7. Visi OS procesai į ekraną ir į ~/Desktop/proc.txt.  (1 t.)
+---------------------------------------------------------------------
+   $ mkdir -p ~/Desktop
+   $ ps aux
+   $ ps aux > ~/Desktop/proc.txt
+   $ ps aux | tee ~/Desktop/proc.txt     # ir ekranas, ir failas / both screen and file
+
+   LT: tee rašo ir į ekraną, ir į failą.
+   EN: tee writes both to screen and to a file.
+
+---------------------------------------------------------------------
+8. Esamo vartotojo procesai į ekraną ir į ~/Desktop/procu.txt.  (1 t.)
+---------------------------------------------------------------------
+   $ ps -u $USER
+   $ ps -u $USER > ~/Desktop/procu.txt
+   $ ps -u $(whoami) u | tee ~/Desktop/procu.txt
+
+---------------------------------------------------------------------
+9. Failo procu.txt gale teksto redaktoriumi pridėkite "Čia mano Vardas
+   Pavardė procesai".  (1 t.)
+---------------------------------------------------------------------
+   $ nano ~/Desktop/procu.txt   → Alt+/ (pabaiga) → Enter → įrašyti →
+     Ctrl+O, Enter, Ctrl+X
+   vim: $ vim ~/Desktop/procu.txt → G → o → įrašyti → Esc → :wq
+   $ tail -n 2 ~/Desktop/procu.txt
+   (greitai be redaktoriaus / quick: echo "Čia mano J. K. procesai" >> ~/Desktop/procu.txt)
+
+---------------------------------------------------------------------
+10. proc.txt ir procu.txt į archyvą proc.zip. Išveskite proc.zip tipą. (1 t.)
+---------------------------------------------------------------------
+   $ cd ~/Desktop
+   $ zip proc.zip proc.txt procu.txt          # sudo apt install zip
+   $ file proc.zip                            # Zip archive data
+   $ unzip -l proc.zip                        # turinys / contents
+
+---------------------------------------------------------------------
+11. Suteikite vartotojui student (arba pradiniam vartotojui) teisę
+    vykdyti (execute) proc.zip.  (1 t.)
+---------------------------------------------------------------------
+   Variantas A – per "kiti" / via "others" (paprasčiausias):
+   $ chmod o+x ~/Desktop/proc.zip
+   Variantas B – tiksliai tam vartotojui (ACL) / exactly that user:
+   $ setfacl -m u:student:x ~/Desktop/proc.zip
+   $ getfacl ~/Desktop/proc.zip
+   Variantas C – savininkas student / make student the owner:
+   $ sudo chown student ~/Desktop/proc.zip && chmod u+x ~/Desktop/proc.zip
+   $ ls -l ~/Desktop/proc.zip
+
+   LT: o+x – kitiems (ne savininkui, ne grupei) pridėti x. setfacl –
+       teisė konkrečiam vartotojui. Kad student pasiektų failą, jis turi
+       galėti įeiti į /home/laikymas ir Desktop (chmod o+x katalogams).
+   EN: o+x – add execute for others. setfacl – permission for a specific
+       user. For student to reach the file they must be able to enter
+       /home/laikymas and Desktop (chmod o+x on those dirs).
+
+---------------------------------------------------------------------
+12. Kokias teises turite failui /bin/ls.  (1 t.)
+---------------------------------------------------------------------
+   $ ls -l /bin/ls              # -rwxr-xr-x 1 root root ... → kiti: r-x
+   $ stat /bin/ls
+   $ stat -c "%A %U %G" /bin/ls
+   $ getfacl /bin/ls
+
+   LT: esate "kiti" (ne root, ne grupė root) → r-x: skaityti ir vykdyti.
+   EN: you are "others" → r-x: read and execute.
+
+---------------------------------------------------------------------
+13. Kataloge /home suraskite visus failus, susijusius su "mozilla". (1 t.)
+---------------------------------------------------------------------
+   $ find /home -iname "*mozilla*" 2>/dev/null
+   $ sudo find /home -iname "*mozilla*"          # ir kitų vartotojų / other users too
+   $ grep -rl mozilla /home 2>/dev/null          # failai, kurių viduje yra žodis / by content
+
+   LT: -iname nepaiso raidžių dydžio; 2>/dev/null slepia Permission denied.
+   EN: -iname is case-insensitive; 2>/dev/null hides Permission denied.
+
+---------------------------------------------------------------------
+14. Ar sistemoje yra "zombinių" procesų.  (1 t.)
+---------------------------------------------------------------------
+   $ ps aux | awk '$8 ~ /Z/'
+   $ ps -eo pid,ppid,stat,cmd | grep -w Z
+   $ ps aux | grep -w Z | grep -v grep
+   $ top            # antraštėje: "Tasks: ... 0 zombie" / header shows zombie count
+
+   LT: zombie (Z, <defunct>) – baigęs darbą procesas, kurio tėvas dar
+       neperskaitė rezultato. Šalinamas nužudžius tėvą (kill PPID).
+   EN: zombie (Z, <defunct>) – a finished process whose parent has not
+       yet collected its exit status. Removed by killing the parent.
+
+---------------------------------------------------------------------
+15. Scenarijus, kuris suskaičiuoja visus failus namų kataloge (su
+    pakatalogiais) ir išveda skaičių.  (2 t.)
+---------------------------------------------------------------------
+   $ nano ~/count.sh
+   ------------------------------ count.sh ---------------------------
+   #!/bin/bash
+   # Suskaičiuoja visus failus namų kataloge / counts all files in home
+   KIEK=$(find "$HOME" -type f 2>/dev/null | wc -l)
+   echo "Namų kataloge $HOME yra $KIEK failų"
+   -------------------------------------------------------------------
+   $ chmod +x ~/count.sh
+   $ ~/count.sh
+
+   LT: find -type f – tik failai (ne katalogai); wc -l skaičiuoja eilutes;
+       $(...) įrašo rezultatą į kintamąjį. Su katalogais: find "$HOME" | wc -l
+   EN: find -type f – regular files only; wc -l counts lines; $(...)
+       captures output into a variable. Including dirs: find "$HOME" | wc -l
+
+---------------------------------------------------------------------
+16. Prisijunkite prie Ubuntu per SSH iš Host OS.  (1 t.)
+---------------------------------------------------------------------
+   Ubuntu: $ sudo apt install -y openssh-server && sudo systemctl enable --now ssh
+           $ hostname -I
+   Host (Windows PowerShell):  PS> ssh laikymasVP@<Ubuntu_IP>
+   (PuTTY: Host <IP>, Port 22; VirtualBox NAT – port forwarding 2222→22 →
+    ssh -p 2222 laikymasVP@127.0.0.1)
+   $ who ; w
+
+---------------------------------------------------------------------
+17. Per SSH iš Host sukurkite Apache tinklalapį, pasiekiamą per domeną;
+    turinys "Sveiki atvykę į mano puslapį."  (3 t.)
+---------------------------------------------------------------------
+   (viskas per SSH sesiją / all inside the SSH session)
+   $ sudo apt install -y apache2
+   $ sudo systemctl enable --now apache2
+   $ sudo mkdir -p /var/www/mano
+   $ echo '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Mano puslapis</title></head><body><h1>Sveiki atvykę į mano puslapį.</h1></body></html>' | sudo tee /var/www/mano/index.html
+   $ sudo chown -R www-data:www-data /var/www/mano
+   $ sudo tee /etc/apache2/sites-available/mano.conf > /dev/null <<'CONF'
+   <VirtualHost *:80>
+       ServerName mano.local
+       ServerAlias www.mano.local
+       DocumentRoot /var/www/mano
+       <Directory /var/www/mano>
+           Require all granted
+       </Directory>
+   </VirtualHost>
+   CONF
+   $ sudo a2ensite mano.conf
+   $ sudo apachectl configtest
+   $ sudo systemctl reload apache2
+   $ curl -H "Host: mano.local" http://localhost
+
+   Domenas / domain (pasirinkite vieną / pick one):
+   a) Vietinis: Host OS hosts faile (Windows: C:\Windows\System32\drivers\etc\hosts,
+      atidaryti Notepad kaip administratorius) pridėti:
+         <Ubuntu_IP>  mano.local www.mano.local
+      Ubuntu: echo "127.0.0.1 mano.local" | sudo tee -a /etc/hosts
+   b) Tikras: noip.com → hostname (pvz. mano.ddns.net) → ServerName
+      mano.ddns.net → maršrutizatoriuje port forward 80.
+   Patikrinti naršyklėje / check in browser: http://mano.local
+
+---------------------------------------------------------------------
+18. Patalpinkite svetainę naudojant Docker ir Dockerfile.  (1 t.)
+---------------------------------------------------------------------
+   $ sudo apt install -y docker.io && sudo usermod -aG docker $USER && newgrp docker
+   $ mkdir -p ~/dsite/site && cd ~/dsite
+   $ echo '<h1>Sveiki atvykę į mano puslapį.</h1>' > site/index.html
+   $ printf 'FROM nginx:alpine\nCOPY site/ /usr/share/nginx/html/\nEXPOSE 80\n' > Dockerfile
+   $ cat Dockerfile
+   $ docker build -t mano-svetaine .
+   $ docker run -d --name svetaine -p 8080:80 mano-svetaine
+   $ docker ps
+   $ curl http://localhost:8080
+   Naršyklė / browser: http://<Ubuntu_IP>:8080

@@ -1,0 +1,35 @@
+=====================================================================
+08  GIT, GITHUB, VS CODE  /  cheat sheet (užduoties failo nebuvo – santrauka)
+=====================================================================
+   $ sudo apt install git
+   $ git config --global user.name "Vardas Pavardė"
+   $ git config --global user.email "el@pastas.lt"
+   $ git init                       sukurti repozitoriją / create a repo
+   $ git clone https://github.com/vartotojas/repo.git   parsisiųsti / clone
+   $ git status                     būsena / status
+   $ git add failas  |  git add .   pridėti į staging / stage changes
+   $ git commit -m "Žinutė"         įrašyti pakeitimą / commit
+   $ git log --oneline              istorija / history
+   $ git diff                       kas pasikeitė / what changed
+   $ git branch ; git checkout -b nauja   šakos / branches
+   $ git switch main                perjungti šaką / switch branch
+   $ git merge nauja                sujungti / merge
+   $ git remote add origin https://github.com/user/repo.git
+   $ git push -u origin main        išsiųsti į GitHub / push
+   $ git pull                       parsisiųsti pakeitimus / pull
+   $ git rm failas ; git mv a b     trinti / pervadinti
+   $ git restore failas             atšaukti pakeitimus / discard changes
+   $ git stash ; git stash pop      atidėti / atkurti pakeitimus
+   $ cat > .gitignore               ignoruojami failai / ignored files
+
+GitHub autentifikacija / auth: HTTPS su Personal Access Token (Settings →
+Developer settings → Tokens) arba SSH raktu:
+   $ ssh-keygen -t ed25519 -C "el@pastas.lt"
+   $ cat ~/.ssh/id_ed25519.pub   → GitHub → Settings → SSH keys
+   $ git remote set-url origin git@github.com:user/repo.git
+GitHub CLI:  sudo apt install gh ; gh auth login ; gh repo create
+
+VS Code:  sudo snap install code --classic ;  code .  (atidaryti katalogą)
+   Ctrl+`  terminalas / terminal      Ctrl+Shift+P  komandų paletė
+   Ctrl+P  failo paieška              Ctrl+Shift+G  Git skydelis / Source Control
+   Plėtiniai / extensions: Remote - SSH (redaguoti serveryje), Docker, GitLens

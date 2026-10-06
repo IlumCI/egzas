@@ -1,0 +1,78 @@
+=====================================================================
+05  DARBAS SU ARCHYVATORIAIS  /  ARCHIVING AND COMPRESSION
+=====================================================================
+Teorija / theory: tar sudeda failus į vieną archyvą (.tar), suspaudimą
+daro gzip (.gz), bzip2 (.bz2), xz (.xz). zip ir suspaudžia, ir archyvuoja.
+tar raktai: c create, x extract, t list, v verbose, f file, z gzip,
+j bzip2, J xz, -C <katalogas> kur išpakuoti.
+tar bundles files (.tar); compression is done by gzip/bzip2/xz. zip does
+both. tar flags: c create, x extract, t list, v verbose, f file,
+z gzip, j bzip2, J xz, -C <dir> where to extract.
+Įrankiai / tools: sudo apt install zip unzip unrar p7zip-full
+
+---------------------------------------------------------------------
+1. Sukurkite ~/Tekstas su failais archive1.txt, archive2.txt.
+---------------------------------------------------------------------
+   $ mkdir -p ~/Tekstas
+   $ touch ~/Tekstas/archive1.txt ~/Tekstas/archive2.txt
+   (kad būtų ką spausti / so there is something to compress:)
+   $ cat /etc/services > ~/Tekstas/archive1.txt ; cat /etc/passwd > ~/Tekstas/archive2.txt
+
+---------------------------------------------------------------------
+2. Suarchyvuokite abu failus į vieną archyvą 3 būdais: bzip2, zip, gzip.
+   Išveskite archyvų dydžius.
+---------------------------------------------------------------------
+   $ cd ~/Tekstas
+   $ tar -cvjf archive.tar.bz2 archive1.txt archive2.txt     # bzip2
+   $ tar -cvzf archive.tar.gz  archive1.txt archive2.txt     # gzip
+   $ zip archive.zip archive1.txt archive2.txt               # zip
+   $ ls -l archive.*
+   $ ls -lh archive.* ; du -b archive.*
+
+   LT: -c sukurti, -v rodyti failus, -j bzip2, -z gzip, -f archyvo vardas
+       (turi eiti paskutinis prieš vardą). Peržiūrėti turinį: tar -tvf.
+   EN: -c create, -v verbose, -j bzip2, -z gzip, -f archive name (must be
+       last before the name). List contents: tar -tvf.
+
+   Tik gzip/bzip2 be tar spaudžia po vieną failą / gzip/bzip2 alone
+   compress single files: gzip failas → failas.gz ; gunzip failas.gz ;
+   bzip2 failas ; bunzip2 failas.bz2
+
+---------------------------------------------------------------------
+3. Ištrinkite zip ir bzip2 archyvus.
+---------------------------------------------------------------------
+   $ rm ~/Tekstas/archive.zip ~/Tekstas/archive.tar.bz2
+
+---------------------------------------------------------------------
+4. Kataloge Downloads išarchyvuokite failus text1.txt ir text2.txt.
+---------------------------------------------------------------------
+   (iš archyvo, kuriame jie yra / from the archive that contains them)
+   $ tar -xvzf archyvas.tar.gz -C ~/Downloads text1.txt text2.txt
+   $ tar -xvjf archyvas.tar.bz2 -C ~/Downloads text1.txt text2.txt
+   $ unzip archyvas.zip text1.txt text2.txt -d ~/Downloads
+   Visą archyvą / whole archive:
+   $ tar -xvzf archyvas.tar.gz -C ~/Downloads
+   $ unzip archyvas.zip -d ~/Downloads
+   $ ls ~/Downloads
+
+   LT: -x išpakuoti, -C paskirties katalogas, pabaigoje – konkretūs failai.
+   EN: -x extract, -C target directory, specific file names at the end.
+
+---------------------------------------------------------------------
+*5. Atsisiųskite Mano_tekstai.zip, išarchyvuokite, patikrinkite turinį
+    (galutinis failas – paveikslėlis).
+---------------------------------------------------------------------
+   $ cd ~/Downloads
+   $ unzip Mano_tekstai.zip
+   $ ls -l ; file *            # kas viduje – gali būti dar vienas archyvas
+   Kartokite pagal tipą / repeat depending on type:
+   $ tar -xvf failas.tar       ; tar -xvzf failas.tar.gz ; tar -xvjf failas.tar.bz2
+   $ tar -xvJf failas.tar.xz   ; gunzip failas.gz ; bunzip2 failas.bz2 ; unxz failas.xz
+   $ unrar x failas.rar        ; 7z x failas.7z
+   $ file paveikslelis         # "PNG image data" / "JPEG image data"
+   $ xdg-open paveikslelis.png # atidaryti GUI / open in GUI
+
+   LT: file nustato tipą pagal turinį, net jei plėtinys melagingas.
+       Universalus išpakavimas: 7z x <bet koks archyvas>.
+   EN: file detects type by content even when the extension lies.
+       Universal extractor: 7z x <any archive>.

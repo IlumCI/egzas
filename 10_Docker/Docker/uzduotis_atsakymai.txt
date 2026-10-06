@@ -1,0 +1,155 @@
+=====================================================================
+10  DOCKER  /  CONTAINERS
+=====================================================================
+Teorija / theory: image (atvaizdas) = šablonas; container (konteineris) =
+paleistas atvaizdas; Dockerfile = receptas atvaizdui; registry (Docker Hub)
+= atvaizdų saugykla; -p host:konteineris = prievadų susiejimas;
+-v kelias:kelias = disko prijungimas; -d = fone (detached).
+  docker ps / ps -a          veikiantys / visi konteineriai
+  docker images              atvaizdai
+  docker run / stop / start / rm   paleisti / stabdyti / paleisti vėl / trinti
+  docker logs X ; docker exec -it X bash   log'ai ; įeiti į konteinerį
+  docker build -t vardas .   sukurti atvaizdą iš Dockerfile
+  docker compose up -d       paleisti iš docker-compose.yml
+
+---------------------------------------------------------------------
+1. Įdiekite Docker.
+---------------------------------------------------------------------
+   Variantas A – oficiali Docker saugykla (docs.docker.com/engine/install/ubuntu):
+   $ sudo apt update && sudo apt install -y ca-certificates curl
+   $ sudo install -m 0755 -d /etc/apt/keyrings
+   $ sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+   $ sudo chmod a+r /etc/apt/keyrings/docker.asc
+   $ echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+   $ sudo apt update
+   $ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+   Variantas B – greitas iš Ubuntu saugyklos / quick from Ubuntu repo:
+   $ sudo apt install -y docker.io docker-compose-v2
+   Po diegimo / after install:
+   $ sudo systemctl enable --now docker
+   $ sudo usermod -aG docker $USER      # kad nereikėtų sudo; atsijungti/prisijungti
+   $ newgrp docker                      # arba iš naujo prisijungti / or re-login
+   $ docker --version ; docker info
+
+   LT: docker grupės nariai gali valdyti Docker be sudo.
+   EN: members of the docker group can use Docker without sudo.
+
+---------------------------------------------------------------------
+2. Paleiskite hello-world konteinerį.
+---------------------------------------------------------------------
+   $ docker run hello-world
+   $ docker ps -a                       # matysite baigusį konteinerį / exited container
+
+   LT: run = pull (jei nėra lokaliai) + create + start.
+   EN: run = pull (if not local) + create + start.
+
+---------------------------------------------------------------------
+3. Paleiskite apache2 (httpd) konteinerį ir patikrinkite.
+---------------------------------------------------------------------
+   $ docker run -d --name mano-apache -p 8080:80 httpd
+   $ docker ps
+   $ curl http://localhost:8080          # "It works!"
+   $ docker logs mano-apache
+
+   LT: -d fone, --name vardas, -p 8080:80 – kompiuterio 8080 → konteinerio 80.
+   EN: -d detached, --name a name, -p 8080:80 – host 8080 → container 80.
+
+---------------------------------------------------------------------
+4. Paleiskite nginx konteinerį ir patikrinkite.
+---------------------------------------------------------------------
+   $ docker run -d --name mano-nginx -p 8081:80 nginx
+   $ curl http://localhost:8081          # "Welcome to nginx!"
+   Naršyklė / browser: http://localhost:8081
+
+---------------------------------------------------------------------
+5. Sustabdykite paleistus konteinerius.
+---------------------------------------------------------------------
+   $ docker stop mano-apache mano-nginx
+   $ docker ps -a
+   $ docker rm mano-apache mano-nginx     # ištrinti / delete
+   $ docker stop $(docker ps -q)          # sustabdyti visus / stop all
+   $ docker container prune               # išvalyti sustabdytus / remove stopped
+
+---------------------------------------------------------------------
+6. Dockerfile iš nginx atvaizdo, patalpinkite savo svetainę.
+---------------------------------------------------------------------
+   $ mkdir -p ~/docker-svetaine/site && cd ~/docker-svetaine
+   $ cat > site/index.html <<'HTML'
+   <!DOCTYPE html>
+   <html><head><meta charset="UTF-8"><title>Vardas Pavardė</title></head>
+   <body><h1>Vardas Pavardė</h1><p>Sveiki atvykę į mano puslapį.</p></body></html>
+   HTML
+   $ nano Dockerfile
+   ------------------------------ Dockerfile -------------------------
+   FROM nginx:alpine
+   COPY site/ /usr/share/nginx/html/
+   EXPOSE 80
+   -------------------------------------------------------------------
+   $ docker build -t mano-svetaine .
+   $ docker run -d --name svetaine -p 8082:80 mano-svetaine
+   $ curl http://localhost:8082
+   $ docker images
+
+   LT: FROM – bazinis atvaizdas; COPY – įkopijuoti failus į atvaizdą
+       (/usr/share/nginx/html – nginx web root); EXPOSE – dokumentuoja
+       prievadą; build -t vardas . – sukurti atvaizdą iš dabartinio katalogo.
+   EN: FROM – base image; COPY – copy files into the image (nginx web
+       root is /usr/share/nginx/html); EXPOSE – documents the port;
+       build -t name . – build the image from the current directory.
+
+   Apache variantas / Apache variant:  FROM httpd:alpine
+                                       COPY site/ /usr/local/apache2/htdocs/
+
+---------------------------------------------------------------------
+7-8. Patalpinkite ir išbandykite metube (YouTube atsisiuntimo web UI).
+---------------------------------------------------------------------
+   $ mkdir -p ~/metube/downloads
+   $ docker run -d --name metube -p 8083:8081 -v ~/metube/downloads:/downloads ghcr.io/alexta69/metube
+   Naršyklė / browser: http://localhost:8083  → įklijuokite YouTube nuorodą
+   $ ls ~/metube/downloads
+   Su compose / with compose:
+   $ nano ~/metube/docker-compose.yml
+   ------------------------------ docker-compose.yml -----------------
+   services:
+     metube:
+       image: ghcr.io/alexta69/metube
+       container_name: metube
+       restart: unless-stopped
+       ports:
+         - "8083:8081"
+       volumes:
+         - ./downloads:/downloads
+   -------------------------------------------------------------------
+   $ cd ~/metube && docker compose up -d
+   $ docker compose logs -f ; docker compose down
+
+   LT: -v host:konteineris – atsisiųsti failai lieka kompiuteryje.
+   EN: -v host:container – downloaded files persist on the host.
+
+---------------------------------------------------------------------
+9. Trys svetainės/tarnybos iš sąrašo (awesome-selfhosted) – pavyzdžiai.
+---------------------------------------------------------------------
+   a) Portainer – Docker valdymo web UI:
+   $ docker volume create portainer_data
+   $ docker run -d --name portainer -p 9443:9443 --restart=always -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data portainer/portainer-ce
+   → https://localhost:9443
+
+   b) Uptime Kuma – svetainių stebėjimas / monitoring:
+   $ docker run -d --name uptime-kuma -p 3001:3001 -v uptime-kuma:/app/data --restart=always louislam/uptime-kuma
+   → http://localhost:3001
+
+   c) File Browser – failų tvarkyklė naršyklėje / web file manager:
+   $ mkdir -p ~/fb && docker run -d --name filebrowser -p 8084:80 -v ~/fb:/srv filebrowser/filebrowser
+   → http://localhost:8084  (admin / admin)
+
+   Kiti populiarūs / other popular: nextcloud, jellyfin, vaultwarden,
+   gitea, pi-hole, homeassistant, wordpress (+ mariadb).
+
+---------------------------------------------------------------------
+NAUDINGOS / USEFUL
+---------------------------------------------------------------------
+   $ docker exec -it svetaine sh          # įeiti į konteinerį / shell inside
+   $ docker inspect svetaine | grep IPAddress
+   $ docker pull ubuntu:24.04 ; docker run -it ubuntu:24.04 bash
+   $ docker rmi mano-svetaine             # ištrinti atvaizdą / remove image
+   $ docker system prune -a               # išvalyti viską nenaudojamą / clean up

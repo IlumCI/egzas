@@ -1,0 +1,198 @@
+=====================================================================
+03  VARTOTOJAI IR TEISĖS  /  USERS AND PERMISSIONS (mixed exercise)
+=====================================================================
+VP = Jūsų vardo ir pavardės pirmosios raidės (pvz. "jk").
+VP = your initials (e.g. "jk"). Replace VP below with them.
+
+---------------------------------------------------------------------
+1. Sukurkite vartotoją VP su namų katalogu, administratoriaus teisėmis,
+   galintį peržiūrėti vaizdo įrašus, slaptažodis kontrolinis.
+---------------------------------------------------------------------
+   $ sudo useradd -m -s /bin/bash -G sudo,video VP
+   $ sudo passwd VP               # kontrolinis
+
+   LT: administratoriaus teisės = grupė sudo; vaizdo įrašai = grupė video.
+       -m namų katalogas /home/VP, -s bash apvalkalas.
+   EN: admin rights = group sudo; video playback = group video.
+       -m home dir /home/VP, -s bash shell.
+
+   Alternatyva (interaktyvi) / alternative (interactive):
+   $ sudo adduser VP
+   $ sudo usermod -aG sudo,video VP
+
+---------------------------------------------------------------------
+2. Patikrinkite, ar vartotojas VP buvo sukurtas.
+---------------------------------------------------------------------
+   $ id VP
+   $ grep VP /etc/passwd
+   $ getent passwd VP
+   $ ls /home
+
+---------------------------------------------------------------------
+3. Atimkite iš VP teisę peržiūrėti vaizdo įrašus. Pažiūrėkite grupes.
+---------------------------------------------------------------------
+   $ sudo gpasswd -d VP video
+   arba / or:
+   $ sudo deluser VP video
+   $ groups VP
+   $ id VP
+
+   LT: gpasswd -d (delete) pašalina vartotoją iš grupės.
+   EN: gpasswd -d removes the user from a group.
+
+---------------------------------------------------------------------
+4. Pridėkite VP prie grupės party.
+---------------------------------------------------------------------
+   $ sudo groupadd party            # jei grupės dar nėra / if it doesn't exist
+   $ sudo usermod -aG party VP
+   $ groups VP
+
+---------------------------------------------------------------------
+5. Prisijunkite kaip VP.
+---------------------------------------------------------------------
+   $ su - VP
+
+---------------------------------------------------------------------
+6. Kas prisijungęs prie sistemos ir koks vartotojas dirba su terminalu.
+---------------------------------------------------------------------
+   $ who            # kas prisijungę / who is logged in
+   $ w              # kas prisijungę ir ką daro / logged in + what they run
+   $ users          # tik vardai / names only
+   $ whoami         # kas AŠ dabar / who am I now
+   $ id             # mano UID/GID/grupės
+   $ logname        # kuo iš pradžių prisijungiau / original login name
+   $ tty            # kuris terminalas / which terminal
+
+   LT: po "su" whoami rodo VP, o logname – pradinį vartotoją.
+   EN: after "su", whoami shows VP while logname shows the original user.
+
+---------------------------------------------------------------------
+7. Namų kataloge sukurkite failus a ir b, katalogus A ir B.
+---------------------------------------------------------------------
+   $ cd ~
+   $ touch a b
+   $ mkdir A B
+
+---------------------------------------------------------------------
+8. Perkelkite a į B. Nukopijuokite b į A.
+---------------------------------------------------------------------
+   $ mv a B/
+   $ cp b A/
+
+---------------------------------------------------------------------
+9. Ištrinkite ką tik sukurtus katalogus ir failus.
+---------------------------------------------------------------------
+   $ rm -r A B b
+   (arba / or: rm -rf ~/A ~/B ~/b)
+
+---------------------------------------------------------------------
+10. Nukopijuokite /etc/timezone ir /etc/sudoers su originaliomis teisėmis
+    ir savininkais į savo namų katalogą.
+---------------------------------------------------------------------
+   $ sudo cp -p /etc/timezone /etc/sudoers ~/
+   arba / or:
+   $ sudo cp --preserve=all /etc/timezone /etc/sudoers ~/
+   $ sudo cp -a /etc/timezone /etc/sudoers ~/
+   $ ls -l ~/timezone ~/sudoers
+
+   LT: -p (preserve) išsaugo teises, savininką ir laikus. Reikia sudo,
+       nes /etc/sudoers skaityti gali tik root (teisės 0440).
+       Be -p nukopijuotas failas priklausytų kopijuojančiam vartotojui.
+   EN: -p preserves mode, ownership and timestamps. sudo is needed because
+       /etc/sudoers is readable only by root (0440). Without -p the copy
+       would belong to whoever copied it.
+
+---------------------------------------------------------------------
+11. Vartotojo student namų kataloge sukurkite katalogą foreign. Pakeiskite
+    jo šeimininką ir grupę į student.
+---------------------------------------------------------------------
+   $ sudo mkdir /home/student/foreign
+   $ sudo chown student:student /home/student/foreign
+   $ ls -ld /home/student/foreign
+
+   LT: chown vartotojas:grupė failas – keičia savininką ir grupę.
+       Tik grupę keičia chgrp arba chown :grupė.
+   EN: chown user:group file – changes owner and group.
+       chgrp or chown :group changes only the group.
+
+---------------------------------------------------------------------
+12. Pakeiskite foreign teises: visi gali įeiti, niekas negali įrašyti.
+---------------------------------------------------------------------
+   $ sudo chmod 555 /home/student/foreign        # r-xr-xr-x
+   arba / or:
+   $ sudo chmod a=rx /home/student/foreign
+   $ ls -ld /home/student/foreign
+
+   LT: katalogui x = galima įeiti (cd), r = matyti sąrašą, w = kurti/
+       trinti failus. 555 = visi gali skaityti ir įeiti, NIEKAS (net
+       savininkas) negali rašyti. (Jei savininkui rašyti galima – 755.)
+   EN: on a directory x = enter (cd), r = list, w = create/delete files.
+       555 = everyone can read and enter, NOBODY (even owner) can write.
+       (If the owner should still write, use 755.)
+
+---------------------------------------------------------------------
+13. Savo namų kataloge sukurkite katalogo foreign nuorodą.
+---------------------------------------------------------------------
+   $ ln -s /home/student/foreign ~/foreign
+   $ ls -l ~
+
+---------------------------------------------------------------------
+14. Namų kataloge (su pakatalogiais) suraskite visus failus, nurodykite jų
+    tipus ir sunumeruotą sąrašą išsaugokite faile types.txt. Klaidas
+    ignoruokite. (find, xargs, file)
+---------------------------------------------------------------------
+   $ find ~ -type f 2>/dev/null | xargs -d '\n' file 2>/dev/null | nl > ~/types.txt
+   arba saugesnis variantas (vardai su tarpais) / safer for names with spaces:
+   $ find ~ -type f -print0 2>/dev/null | xargs -0 file 2>/dev/null | cat -n > ~/types.txt
+   $ head ~/types.txt
+
+   LT: find -type f – tik failai; 2>/dev/null – klaidos į "šiukšlyną";
+       xargs paduoda find rezultatus kaip argumentus komandai file;
+       file nustato failo tipą pagal turinį; nl / cat -n numeruoja eilutes;
+       > įrašo į failą.
+   EN: find -type f – regular files only; 2>/dev/null – discard errors;
+       xargs passes find's output as arguments to file; file detects the
+       type by content; nl / cat -n numbers the lines; > writes to a file.
+
+---------------------------------------------------------------------
+15. Sukurkite vartotoją temp-vartotojas tik su administratoriaus teisėmis
+    (be namų katalogo).
+---------------------------------------------------------------------
+   $ sudo useradd -G sudo -s /bin/bash temp-vartotojas
+   $ sudo passwd temp-vartotojas
+
+   LT: be -m namų katalogas nesukuriamas (passwd faile bus
+       /home/temp-vartotojas, bet jo nebus diske).
+   EN: without -m no home directory is created (passwd will list
+       /home/temp-vartotojas but it won't exist on disk).
+
+---------------------------------------------------------------------
+16. Prisijunkite kaip sukurtas vartotojas.
+---------------------------------------------------------------------
+   $ su - temp-vartotojas
+   (pranešimas: "No directory, logging in with HOME=/" – normalu)
+
+---------------------------------------------------------------------
+17. Paredaguokite, kad galėtumėte prisijungti prie grafinės aplinkos
+    (usermod, mkhomedir_helper).
+---------------------------------------------------------------------
+   $ exit
+   $ sudo mkhomedir_helper temp-vartotojas
+   $ sudo usermod -d /home/temp-vartotojas -s /bin/bash temp-vartotojas
+   $ ls -la /home/temp-vartotojas
+
+   LT: mkhomedir_helper sukuria namų katalogą iš /etc/skel šablono ir
+       nustato savininką. usermod -d nustato namų katalogą, -s shell'ą
+       (grafinei sesijai reikia ir namų katalogo, ir tikro shell'o).
+       Alternatyva: sudo usermod -m -d /home/temp-vartotojas temp-vartotojas
+   EN: mkhomedir_helper creates the home dir from /etc/skel and sets the
+       owner. usermod -d sets the home dir, -s the shell (a graphical
+       session needs both a home dir and a real shell).
+       Alternative: sudo usermod -m -d /home/temp-vartotojas temp-vartotojas
+
+---------------------------------------------------------------------
+18. Prisijunkite grafinėje aplinkoje.
+---------------------------------------------------------------------
+   Atsijunkite (log out) ir prisijungimo lange pasirinkite temp-vartotojas.
+   Log out and pick temp-vartotojas on the login screen.
+   Tikrinimui / check from terminal:  who ; loginctl list-sessions

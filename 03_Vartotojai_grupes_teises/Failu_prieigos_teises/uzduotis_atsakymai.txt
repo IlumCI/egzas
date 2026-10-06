@@ -1,0 +1,126 @@
+=====================================================================
+03  FAILŲ / KATALOGŲ PRIEIGOS TEISĖS  /  FILE AND DIRECTORY PERMISSIONS
+=====================================================================
+TEORIJA / THEORY
+   ls -l rodo:  -rw-r--r-- 1 vardas grupe 0 Oct 6 10:00 failas
+                ^^^^^^^^^^   savininkas grupė
+   1 simbolis: - failas, d katalogas, l nuoroda / - file, d dir, l link
+   Po to 3 grupės po 3: savininkas (u), grupė (g), kiti (o)
+   Then 3 triplets: user (u), group (g), others (o)
+   r = 4 (skaityti/read), w = 2 (rašyti/write), x = 1 (vykdyti/execute,
+   katalogui – įeiti/enter)
+   Pvz. 644 = rw-r--r--, 755 = rwxr-xr-x, 600 = rw-------, 777 = rwxrwxrwx
+   chmod 644 f      – skaitmeninis / numeric
+   chmod u+x f      – simbolinis: u/g/o/a  +/-/=  r/w/x
+   chmod -R ...     – rekursyviai / recursive
+   chown vart:grupė f, chgrp grupė f – savininkas / grupė
+
+---------------------------------------------------------------------
+1. Savo namų kataloge sukurkite katalogą Teises.
+---------------------------------------------------------------------
+   $ mkdir ~/Teises
+
+---------------------------------------------------------------------
+2. Kataloge Teises sukurkite failus right1.txt, right2.txt, right3.txt.
+---------------------------------------------------------------------
+   $ touch ~/Teises/right{1,2,3}.txt
+
+---------------------------------------------------------------------
+3. Pažiūrėkite katalogo Teises ir failų prieigos teises.
+---------------------------------------------------------------------
+   $ ls -ld ~/Teises          # paties katalogo teisės / the dir itself
+   $ ls -l ~/Teises           # failų viduje / files inside
+   $ stat ~/Teises/right1.txt # išsamiai / detailed
+
+   LT: -d rodo patį katalogą, o ne jo turinį. Numatyta: failai 664
+       (rw-rw-r--), katalogai 775 (rwxrwxr-x) – dėl umask 002.
+   EN: -d shows the directory entry itself, not its contents. Defaults:
+       files 664, directories 775 – due to umask 002.
+
+---------------------------------------------------------------------
+4. Pakeiskite katalogo Teises grupę į root.
+---------------------------------------------------------------------
+   $ sudo chgrp root ~/Teises
+   arba / or:
+   $ sudo chown :root ~/Teises
+
+   LT: chgrp keičia grupę; reikia sudo, nes paprastas vartotojas gali
+       priskirti tik grupes, kurioms pats priklauso.
+   EN: chgrp changes the group; sudo is needed because a normal user can
+       only assign groups they belong to.
+
+---------------------------------------------------------------------
+5. Pažiūrėkite teises dar kartą.
+---------------------------------------------------------------------
+   $ ls -ld ~/Teises
+   $ ls -l ~/Teises
+   (Katalogo grupė dabar root; failų viduje – nepasikeitė. Su -R
+    pasikeistų ir failų. / Dir group is root now; files unchanged.
+    chgrp -R would also change the files.)
+
+---------------------------------------------------------------------
+6. Sukurkite namų kataloge katalogą TeisesCP.
+---------------------------------------------------------------------
+   $ mkdir ~/TeisesCP
+
+---------------------------------------------------------------------
+7. Nukopijuokite Teises/right2.txt į TeisesCP.
+---------------------------------------------------------------------
+   $ cp ~/Teises/right2.txt ~/TeisesCP/
+
+---------------------------------------------------------------------
+8. Pažiūrėkite nukopijuoto failo teises.
+---------------------------------------------------------------------
+   $ ls -l ~/TeisesCP/right2.txt
+
+---------------------------------------------------------------------
+9. Pakeiskite TeisesCP/right2.txt teises į 644.
+---------------------------------------------------------------------
+   $ chmod 644 ~/TeisesCP/right2.txt
+
+   LT: 644 = savininkas skaito+rašo (6=4+2), grupė skaito (4), kiti
+       skaito (4) → rw-r--r--.
+   EN: 644 = owner read+write (6=4+2), group read (4), others read (4)
+       → rw-r--r--.
+
+---------------------------------------------------------------------
+10. Pažiūrėkite TeisesCP/right2.txt teises.
+---------------------------------------------------------------------
+   $ ls -l ~/TeisesCP/right2.txt
+   $ stat -c "%a %A %U %G %n" ~/TeisesCP/right2.txt   # 644 -rw-r--r-- ...
+
+---------------------------------------------------------------------
+11. Pakeiskite TeisesCP/right2.txt šeimininką į root.
+---------------------------------------------------------------------
+   $ sudo chown root ~/TeisesCP/right2.txt
+   $ ls -l ~/TeisesCP/right2.txt
+
+---------------------------------------------------------------------
+12. Ištrinkite (kaip paprastas vartotojas) failą TeisesCP/right2.txt.
+---------------------------------------------------------------------
+   $ rm ~/TeisesCP/right2.txt
+   rm: remove write-protected regular empty file '.../right2.txt'? y
+   (arba / or: rm -f ~/TeisesCP/right2.txt – be klausimo / no prompt)
+
+   LT: PAVYKS, nors failas priklauso root! Trynimas – tai įrašo
+       pašalinimas iš KATALOGO, todėl reikia rašymo teisės į katalogą
+       TeisesCP (jis Jūsų), o ne į patį failą. rm tik perspėja, kad
+       failas neturi rašymo teisės. Jei norėtumėte uždrausti trynimą –
+       katalogui dėtumėte "sticky bit" (chmod +t), kaip /tmp.
+   EN: It WORKS even though root owns the file! Deleting removes the
+       entry from the DIRECTORY, so you need write permission on the
+       directory TeisesCP (yours), not on the file. rm only warns that
+       the file is write-protected. To forbid this you would set the
+       sticky bit on the directory (chmod +t), like /tmp.
+
+---------------------------------------------------------------------
+PAPILDOMAI / EXTRA – dažnos teisių komandos
+---------------------------------------------------------------------
+   $ chmod +x script.sh           # leisti vykdyti / make executable
+   $ chmod u+x,go-w failas        # keli pakeitimai / several changes
+   $ chmod -R 755 katalogas       # rekursyviai / recursively
+   $ chmod o= failas              # kitiems – nieko / others: nothing
+   $ umask                        # numatytų teisių kaukė / default mask (0002)
+   $ sudo chown -R vardas:grupe katalogas
+   $ ls -l /bin/ls                # -rwxr-xr-x root root
+   $ getfacl failas ; setfacl -m u:vardas:rw failas   # ACL (smulkesnės teisės)

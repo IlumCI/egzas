@@ -1,0 +1,108 @@
+=====================================================================
+04  DARBAS SU SYSTEMD TARNYBOMIS  /  WORKING WITH SYSTEMD SERVICES
+=====================================================================
+Teorija / theory: systemd – Ubuntu init sistema (PID 1). Tarnyba
+(service, unit) valdoma systemctl, žurnalai – journalctl.
+  systemctl status X     būsena / status
+  systemctl start X      paleisti / start
+  systemctl stop X       sustabdyti / stop
+  systemctl restart X    perkrauti / restart
+  systemctl reload X     perskaityti konfigūraciją / reload config
+  systemctl enable X     įjungti autostartą / enable at boot
+  systemctl disable X    išjungti autostartą / disable at boot
+  systemctl enable --now X   įjungti ir paleisti dabar / enable and start
+  systemctl is-active X / is-enabled X
+  journalctl -u X        tarnybos log'ai / service logs
+
+---------------------------------------------------------------------
+1. Patikrinkite ufw tarnybos būseną. Išveskite visus jos log'us.
+---------------------------------------------------------------------
+   $ systemctl status ufw
+   $ sudo journalctl -u ufw
+   $ sudo journalctl -u ufw --no-pager      # be puslapiavimo / no pager
+   $ sudo journalctl -u ufw -b              # tik nuo šio įkrovimo / this boot only
+   $ sudo ufw status verbose                # pačios ugniasienės būsena / firewall itself
+
+   LT: ufw – Uncomplicated Firewall (ugniasienė). status rodo active/
+       inactive, enabled/disabled, PID, paskutines log eilutes.
+       journalctl -u <unit> – visi žurnalo įrašai tai tarnybai.
+   EN: ufw – Uncomplicated Firewall. status shows active/inactive,
+       enabled/disabled, PID, last log lines. journalctl -u <unit>
+       shows all journal entries for that service.
+
+---------------------------------------------------------------------
+2. Ar ufw veikia; jei ne – paleiskite.
+---------------------------------------------------------------------
+   $ systemctl is-active ufw
+   $ sudo systemctl start ufw
+   $ sudo systemctl enable --now ufw      # ir autostartas / also autostart
+   $ sudo ufw enable                      # įjungti pačią ugniasienę / turn the firewall on
+   $ systemctl status ufw
+
+   LT: tarnyba (systemd) ir ugniasienės taisyklės (ufw enable) – du
+       skirtingi dalykai; abu turi būti įjungti.
+   EN: the systemd service and the firewall rules (ufw enable) are two
+       different things; both must be on.
+
+---------------------------------------------------------------------
+3. Išveskite visas sistemos tarnybas.
+---------------------------------------------------------------------
+   $ systemctl list-units --type=service              # įkeltos / loaded
+   $ systemctl list-units --type=service --all        # ir neaktyvios / incl. inactive
+   $ systemctl list-unit-files --type=service         # visi failai + enabled/disabled
+   $ systemctl                                        # viskas / everything
+
+---------------------------------------------------------------------
+4. Patikrinkite, kurios tarnybos neveikia.
+---------------------------------------------------------------------
+   $ systemctl list-units --type=service --state=inactive
+   $ systemctl list-units --type=service --state=failed
+   $ systemctl --failed
+   $ systemctl list-units --type=service --all | grep -v running
+
+   LT: inactive = sustabdyta, failed = nulūžo paleidžiant.
+   EN: inactive = stopped, failed = crashed/failed to start.
+
+---------------------------------------------------------------------
+5. Išjunkite NetworkManager automatinį paleidimą. Perkraukite sistemą,
+   patikrinkite ar tarnyba veikia ir ar yra internetas.
+---------------------------------------------------------------------
+   $ sudo systemctl disable NetworkManager
+   $ systemctl is-enabled NetworkManager        # disabled
+   $ sudo reboot
+   Po perkrovimo / after reboot:
+   $ systemctl status NetworkManager            # inactive (dead)
+   $ ip a                                       # nėra IP adreso / no IP
+   $ ping -c 3 8.8.8.8                          # Network is unreachable
+   $ ping -c 3 google.com
+
+   LT: disable tik išjungia autostartą (tarnyba toliau veikia iki
+       perkrovimo/stop). Be NetworkManager Ubuntu desktop neturi tinklo.
+       (Ubuntu Server naudoja systemd-networkd, ten internetas liktų.)
+   EN: disable only removes autostart (the service keeps running until
+       reboot/stop). Without NetworkManager Ubuntu desktop has no
+       network. (Ubuntu Server uses systemd-networkd and would keep it.)
+
+---------------------------------------------------------------------
+6. Vėl įjunkite NetworkManager autostartą ir perkraukite pačią tarnybą.
+---------------------------------------------------------------------
+   $ sudo systemctl enable NetworkManager
+   $ sudo systemctl restart NetworkManager
+   arba vienu / or in one:
+   $ sudo systemctl enable --now NetworkManager
+   $ systemctl status NetworkManager
+   $ ping -c 3 google.com
+
+---------------------------------------------------------------------
+7. Patikrinkite NetworkManager log'us, įsitikinkite, kad nėra klaidų.
+---------------------------------------------------------------------
+   $ sudo journalctl -u NetworkManager -b
+   $ sudo journalctl -u NetworkManager -p err           # tik klaidos / errors only
+   $ sudo journalctl -u NetworkManager -b | grep -i -E "error|fail|warn"
+   $ sudo journalctl -u NetworkManager -f               # stebėti gyvai / follow live
+   $ sudo journalctl -u NetworkManager --since "10 min ago"
+
+   LT: -p err rodo tik "error" ir aukštesnio lygio įrašus; -b – nuo
+       paskutinio įkrovimo; -f – seka naujus įrašus (kaip tail -f).
+   EN: -p err shows only error-level and above; -b – since last boot;
+       -f – follows new entries (like tail -f).

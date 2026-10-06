@@ -1,0 +1,158 @@
+=====================================================================
+05  PAKETŲ VALDYMAS  /  PACKAGE MANAGEMENT (apt, dpkg, snap, PPA, source)
+=====================================================================
+Teorija / theory:
+  apt   – aukšto lygio valdymas iš saugyklų (repositories), sprendžia
+          priklausomybes / high-level, from repos, resolves dependencies
+  dpkg  – žemo lygio, diegia .deb failą, priklausomybių nesprendžia /
+          low-level, installs a .deb file, no dependency resolution
+  snap  – Canonical konteinerizuoti paketai / Canonical's sandboxed packages
+  PPA   – Personal Package Archive (Launchpad trečiųjų šalių saugykla)
+  Fedora atitikmenys / equivalents: dnf = apt, rpm = dpkg, copr = PPA
+
+---------------------------------------------------------------------
+1. Su apt suraskite paketą xcowsay.
+---------------------------------------------------------------------
+   $ sudo apt update                 # atnaujinti paketų sąrašus / refresh lists
+   $ apt search xcowsay
+   $ apt-cache search xcowsay
+   $ apt show xcowsay                # informacija apie paketą / package info
+   $ apt list --installed | grep xcowsay   # ar įdiegtas / installed?
+
+---------------------------------------------------------------------
+2. Su apt įdiekite paketą. Išbandykite.
+---------------------------------------------------------------------
+   $ sudo apt install xcowsay
+   $ xcowsay "Labas, pasauli!"
+   $ xcowsay --help
+
+---------------------------------------------------------------------
+3. Internete suraskite paketą su plėtiniu .deb.
+---------------------------------------------------------------------
+   Pvz. / e.g. Google Chrome, Discord, VS Code:
+   $ wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+   $ wget -O discord.deb "https://discord.com/api/download?platform=linux&format=deb"
+   $ ls -l *.deb
+
+   LT: wget atsisiunčia failą; -O nurodo vardą. curl -LO – alternatyva.
+   EN: wget downloads a file; -O sets the name. curl -LO is an alternative.
+
+---------------------------------------------------------------------
+4. Su dpkg įdiekite surastą paketą. Išbandykite.
+---------------------------------------------------------------------
+   $ sudo dpkg -i google-chrome-stable_current_amd64.deb
+   $ sudo apt install -f            # jei trūko priklausomybių / fix missing deps
+   $ google-chrome &
+   Alternatyva (apt sprendžia priklausomybes) / alternative:
+   $ sudo apt install ./google-chrome-stable_current_amd64.deb
+
+   dpkg naudingos / useful:
+   $ dpkg -l | grep chrome          # įdiegtų sąrašas / list installed
+   $ dpkg -L google-chrome-stable   # kokie failai įdiegti / files of package
+   $ dpkg -S /usr/bin/ls            # kuriam paketui priklauso failas / which package owns a file
+   $ sudo dpkg -r paketas           # pašalinti / remove
+
+---------------------------------------------------------------------
+5-6. Įdiekite neofetch ir išbandykite.
+---------------------------------------------------------------------
+   $ sudo apt install neofetch
+   $ neofetch
+   (jei repozitorijoje nėra / if not in repo:)
+   $ git clone https://github.com/dylanaraps/neofetch && cd neofetch && sudo make install
+
+---------------------------------------------------------------------
+7. Įdiekite Visual Studio Code.
+---------------------------------------------------------------------
+   Variantas A – snap:
+   $ sudo snap install code --classic
+   Variantas B – .deb iš code.visualstudio.com:
+   $ wget -O code.deb "https://code.visualstudio.com/sha/download?build=stable&os=linux-deb-x64"
+   $ sudo apt install ./code.deb
+   Variantas C – Microsoft apt saugykla / repo:
+   $ sudo apt install wget gpg apt-transport-https
+   $ wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | sudo tee /usr/share/keyrings/microsoft.gpg > /dev/null
+   $ echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/code stable main" | sudo tee /etc/apt/sources.list.d/vscode.list
+   $ sudo apt update && sudo apt install code
+   $ code .
+
+---------------------------------------------------------------------
+8. Su apt pašalinkite pasirinktą paketą.
+---------------------------------------------------------------------
+   $ sudo apt remove xcowsay          # palieka konfigūraciją / keeps config
+   $ sudo apt purge xcowsay           # su konfigūracija / incl. config
+   $ sudo apt autoremove              # nereikalingos priklausomybės / unused deps
+
+---------------------------------------------------------------------
+9. Įdiekite fastfetch.
+---------------------------------------------------------------------
+   Variantas A – apt (Ubuntu 24.10+ / 25.04 turi): sudo apt install fastfetch
+   Variantas B – PPA (Ubuntu 22.04/24.04):
+   $ sudo add-apt-repository ppa:zhangsongcui3371/fastfetch
+   $ sudo apt update
+   $ sudo apt install fastfetch
+   Variantas C – .deb iš GitHub releases:
+   $ wget https://github.com/fastfetch-cli/fastfetch/releases/latest/download/fastfetch-linux-amd64.deb
+   $ sudo apt install ./fastfetch-linux-amd64.deb
+   $ fastfetch
+
+   Pašalinti PPA / remove a PPA:
+   $ sudo add-apt-repository --remove ppa:zhangsongcui3371/fastfetch
+   (add-apt-repository yra pakete software-properties-common)
+
+---------------------------------------------------------------------
+*10. Įdiekite cockpit, įgalinkite tarnybą, išbandykite.
+---------------------------------------------------------------------
+   $ sudo apt install cockpit
+   $ sudo systemctl enable --now cockpit.socket
+   $ systemctl status cockpit.socket
+   Naršyklėje / browser: https://localhost:9090  (prisijungti savo vartotoju)
+
+   LT: cockpit – web administravimo sąsaja (9090 prievadas), paleidžiama
+       per socket (startuoja pirmo prisijungimo metu).
+   EN: cockpit – web admin UI on port 9090, socket-activated.
+
+---------------------------------------------------------------------
+*11. Įdiekite btop iš išeities kodo ("With make").
+---------------------------------------------------------------------
+   $ sudo apt install build-essential git make g++ coreutils
+   $ git clone https://github.com/aristocratos/btop.git
+   $ cd btop
+   $ make                       # kompiliavimas / compile (gali užtrukti / takes a while)
+   $ sudo make install          # įdiegia į /usr/local/bin
+   $ btop
+   Pašalinti / uninstall: sudo make uninstall
+
+   LT: iš išeities kodo: parsisiųsti → sukompiliuoti (make) → įdiegti
+       (make install). build-essential = gcc, g++, make ir kt.
+   EN: from source: download → compile (make) → install (make install).
+       build-essential = gcc, g++, make, etc.
+
+---------------------------------------------------------------------
+*12. Dvi programos iš sąrašo iš išeities kodo (bendras receptas).
+---------------------------------------------------------------------
+   Autotools (configure) projektai, pvz. htop:
+   $ sudo apt install build-essential autoconf automake libncursesw5-dev
+   $ git clone https://github.com/htop-dev/htop.git && cd htop
+   $ ./autogen.sh && ./configure && make && sudo make install
+   CMake projektai, pvz. cmatrix:
+   $ sudo apt install cmake libncurses-dev
+   $ git clone https://github.com/abishekvashok/cmatrix.git && cd cmatrix
+   $ mkdir build && cd build && cmake .. && make && sudo make install
+
+   LT: skaitykite projekto README/INSTALL – ten nurodytos priklausomybės
+       ir tiksli komandų seka.
+   EN: read the project's README/INSTALL for dependencies and exact steps.
+
+---------------------------------------------------------------------
+*13. Fedora atitikmenys / Fedora equivalents (dnf, rpm)
+---------------------------------------------------------------------
+   sudo apt update && sudo apt upgrade   →  sudo dnf upgrade --refresh
+   apt search X                          →  dnf search X
+   apt show X                            →  dnf info X
+   sudo apt install X                    →  sudo dnf install X
+   sudo apt remove X                     →  sudo dnf remove X
+   sudo dpkg -i failas.deb               →  sudo rpm -i failas.rpm  (arba sudo dnf install ./failas.rpm)
+   dpkg -l                               →  rpm -qa
+   add-apt-repository ppa:...            →  sudo dnf copr enable vartotojas/projektas
+   snap                                   →  flatpak (flatpak install flathub ...)
+   Pvz.: sudo dnf install neofetch fastfetch btop cockpit ; sudo dnf install code (po Microsoft repo pridėjimo)

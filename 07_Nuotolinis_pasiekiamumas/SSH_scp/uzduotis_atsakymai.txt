@@ -1,0 +1,183 @@
+=====================================================================
+07  NUOTOLINIS PASIEKIAMUMAS (IP, SSH, scp)  /  REMOTE ACCESS
+=====================================================================
+
+---------------------------------------------------------------------
+1. Loopback (grįžtamojo ryšio) IP adresas.
+---------------------------------------------------------------------
+   $ ip addr show lo
+   $ ip -4 a show lo          # → 127.0.0.1/8 (IPv6: ::1)
+   $ ifconfig lo              # senas būdas / old way (sudo apt install net-tools)
+
+   LT: lo – virtuali sąsaja, per kurią kompiuteris kalba pats su savimi;
+       127.0.0.1 = localhost.
+   EN: lo – virtual interface for talking to yourself; 127.0.0.1 = localhost.
+
+---------------------------------------------------------------------
+2. Privatus (vietinio tinklo) IP adresas.
+---------------------------------------------------------------------
+   $ ip a                       # ieškoti inet prie enp0s3/eth0/wlan0
+   $ ip -4 a
+   $ hostname -I                # tik adresai / addresses only
+   $ ip route get 1.1.1.1       # sąsaja ir IP, per kurį išeinama į internetą
+
+   LT: privatūs diapazonai: 10.x.x.x, 172.16-31.x.x, 192.168.x.x.
+   EN: private ranges: 10.x.x.x, 172.16-31.x.x, 192.168.x.x.
+
+---------------------------------------------------------------------
+3. Viešasis IP (suteiktas interneto tiekėjo).
+---------------------------------------------------------------------
+   $ curl ifconfig.me
+   $ curl -4 icanhazip.com
+   $ curl https://api.ipify.org
+   $ dig +short myip.opendns.com @resolver1.opendns.com
+   $ wget -qO- ifconfig.me
+
+   LT: viešąjį IP žino tik išorinis serveris, todėl klausiame jo.
+   EN: only an external server sees your public IP, so we ask one.
+
+---------------------------------------------------------------------
+4. Svetainės techin.lt IP adresas.
+---------------------------------------------------------------------
+   $ nslookup techin.lt
+   $ dig techin.lt +short
+   $ host techin.lt
+   $ ping -c 1 techin.lt
+   $ getent hosts techin.lt
+   (dig/nslookup/host: sudo apt install dnsutils / bind9-dnsutils)
+
+   LT: DNS užklausa – vardas → IP. dig išsamiausia; +short tik atsakymas.
+   EN: DNS lookup – name → IP. dig is most detailed; +short prints only the answer.
+
+---------------------------------------------------------------------
+5. google.com IPv4 ir IPv6 adresai.
+---------------------------------------------------------------------
+   $ dig google.com A +short          # IPv4
+   $ dig google.com AAAA +short       # IPv6
+   $ host google.com                  # abu / both
+   $ nslookup -type=AAAA google.com
+   $ ping -4 -c1 google.com ; ping -6 -c1 google.com
+
+   LT: A įrašas = IPv4, AAAA = IPv6.
+   EN: A record = IPv4, AAAA = IPv6.
+
+---------------------------------------------------------------------
+6. Įdiekite SSH serverį ir klientą.
+---------------------------------------------------------------------
+   $ sudo apt update
+   $ sudo apt install openssh-server openssh-client
+   $ sudo systemctl enable --now ssh
+   $ systemctl status ssh
+   $ sudo ufw allow ssh            # jei įjungta ugniasienė / if firewall on
+
+   LT: openssh-server – tarnyba sshd (Ubuntu unit vadinasi "ssh"),
+       klientas – komanda ssh. Prievadas 22.
+   EN: openssh-server – the sshd daemon (unit named "ssh" on Ubuntu),
+       client – the ssh command. Port 22.
+
+---------------------------------------------------------------------
+7. Prisijunkite prie Ubuntu per SSH.
+---------------------------------------------------------------------
+   $ ssh vardas@localhost
+   $ ssh vardas@192.168.x.x        # iš kito kompiuterio / from another machine
+   $ ssh -v vardas@IP              # derinimo info / debug info
+   $ exit                          # atsijungti / disconnect
+
+   LT: pirmą kartą paklaus ar pasitikėti serverio raktu – yes. Slaptažodis
+       – Jūsų vartotojo. Iš Windows: PowerShell → ssh vardas@IP, arba PuTTY.
+   EN: first time it asks to trust the host key – yes. Password – your
+       user's. From Windows: PowerShell → ssh user@IP, or PuTTY.
+   VirtualBox: NAT režime reikia port forwarding (Settings → Network →
+   Advanced → Port Forwarding: host 2222 → guest 22) arba Bridged adapter.
+
+---------------------------------------------------------------------
+*8. Sukonfigūruokite SSH serverį: Port 8443, Protocol 2,
+    PermitRootLogin no, AllowUsers vardas.
+---------------------------------------------------------------------
+   (tikras failas yra /etc/ssh/sshd_config, ne sshd.conf)
+   $ sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak     # atsarginė kopija / backup
+   $ sudo nano /etc/ssh/sshd_config
+   Pakeisti/pridėti eilutes (be # pradžioje) / set these lines (uncommented):
+       Port 8443
+       Protocol 2
+       PermitRootLogin no
+       AllowUsers vardas
+   $ sudo sshd -t                               # patikrinti sintaksę / test config
+   $ sudo systemctl restart ssh
+   Ubuntu 22.10+/24.04 (socket aktyvacija) – jei prievadas nepasikeitė:
+   $ sudo systemctl daemon-reload
+   $ sudo systemctl restart ssh.socket
+   (arba: sudo systemctl disable --now ssh.socket; sudo systemctl enable --now ssh)
+   $ sudo ss -tlnp | grep ssh                    # klausosi 8443? / listening on 8443?
+   $ sudo ufw allow 8443/tcp
+
+   Greitai per sed / quick with sed:
+   $ sudo sed -i 's/^#\?Port .*/Port 8443/; s/^#\?PermitRootLogin .*/PermitRootLogin no/' /etc/ssh/sshd_config
+   $ echo "AllowUsers $USER" | sudo tee -a /etc/ssh/sshd_config
+
+   LT: Port – prievadas; Protocol 2 – tik saugus 2 protokolas (naujos
+       versijos jį ignoruoja, visada 2); PermitRootLogin no – root
+       negali jungtis; AllowUsers – tik išvardyti vartotojai.
+   EN: Port – listening port; Protocol 2 – only SSH-2 (modern versions
+       ignore this, always 2); PermitRootLogin no – root cannot log in;
+       AllowUsers – only listed users may log in.
+
+---------------------------------------------------------------------
+9. Prisijunkite prie savęs naujais duomenimis.
+---------------------------------------------------------------------
+   $ ssh -p 8443 vardas@localhost
+   $ ssh -p 8443 vardas@127.0.0.1
+
+   LT: ssh klientui prievadas – mažoji -p; scp – didžioji -P.
+   EN: ssh uses lowercase -p for the port; scp uses uppercase -P.
+
+---------------------------------------------------------------------
+10. Pabandykite prisijungti kaip root.
+---------------------------------------------------------------------
+   $ ssh -p 8443 root@localhost
+   → "Permission denied" (dėl PermitRootLogin no ir AllowUsers).
+
+---------------------------------------------------------------------
+11. Iš Host sistemos prisijunkite prie Ubuntu ir atnaujinkite ją.
+---------------------------------------------------------------------
+   Windows PowerShell / kitas Linux:
+   > ssh -p 8443 vardas@<Ubuntu_IP>
+   $ sudo apt update && sudo apt upgrade -y
+   $ exit
+   Vienoje eilutėje / one-liner:
+   > ssh -p 8443 vardas@<Ubuntu_IP> "sudo apt update && sudo apt upgrade -y"
+
+---------------------------------------------------------------------
+12. Su scp atsisiųskite failą iš Ubuntu studento namų katalogo.
+---------------------------------------------------------------------
+   Iš Host (parsisiųsti) / from host (download):
+   > scp -P 8443 vardas@<Ubuntu_IP>:/home/student/failas.txt .
+   > scp -P 8443 vardas@<Ubuntu_IP>:~/failas.txt C:\Users\Jonas\Desktop\
+   Nusiųsti į serverį / upload:
+   > scp -P 8443 failas.txt vardas@<Ubuntu_IP>:/home/vardas/
+   Katalogą / directory:
+   > scp -P 8443 -r vardas@<Ubuntu_IP>:/home/student/Dokumentai .
+
+   LT: scp (secure copy) kopijuoja per SSH: šaltinis paskirtis;
+       nuotolinė pusė rašoma vartotojas@adresas:kelias. "." = čia.
+   EN: scp copies over SSH: source destination; remote side is
+       user@host:path. "." = current directory.
+
+---------------------------------------------------------------------
+13. Patikrinkite, kas failo viduje.
+---------------------------------------------------------------------
+   Linux:    $ cat failas.txt ; file failas.txt
+   Windows:  > type failas.txt   arba   > Get-Content failas.txt
+
+---------------------------------------------------------------------
+PAPILDOMAI / EXTRA – SSH raktai, Samba
+---------------------------------------------------------------------
+   $ ssh-keygen -t ed25519                    # sukurti raktų porą / key pair
+   $ ssh-copy-id -p 8443 vardas@IP            # įkelti viešą raktą → be slaptažodžio
+   $ who ; w                                  # kas prisijungęs per SSH / who is on
+   Samba (Windows failų bendrinimas) / file sharing:
+   $ sudo apt install samba
+   $ sudo nano /etc/samba/smb.conf       # [share] path=/home/vardas/share, read only=no
+   $ sudo smbpasswd -a vardas
+   $ sudo systemctl restart smbd
+   Windows: \\<Ubuntu_IP>\share

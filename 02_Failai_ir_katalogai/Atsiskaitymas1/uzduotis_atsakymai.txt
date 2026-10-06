@@ -1,0 +1,217 @@
+=====================================================================
+02  ATSISKAITYMAS 1  (failai ir katalogai)  /  ASSESSMENT 1 (files & dirs)
+=====================================================================
+
+---------------------------------------------------------------------
+1. Sukurkite struktūrą Projektas/{Saltiniai,Duomenys,Rezultatai}.
+---------------------------------------------------------------------
+   $ mkdir -p ~/Projektas/{Saltiniai,Duomenys,Rezultatai}
+
+   LT: -p sukuria ir tėvinius katalogus (Projektas) vienu metu.
+   EN: -p creates parent directories (Projektas) in the same go.
+
+---------------------------------------------------------------------
+2. Kataloge Saltiniai sukurkite a1.txt a2.txt b1.txt b2.txt c1.txt c2.txt.
+---------------------------------------------------------------------
+   $ touch ~/Projektas/Saltiniai/{a,b,c}{1,2}.txt
+
+---------------------------------------------------------------------
+3. Peržiūrėkite Saltiniai turinį pilnu formatu (dydžiai, teisės, datos).
+---------------------------------------------------------------------
+   $ ls -l ~/Projektas/Saltiniai
+   $ ls -lh ~/Projektas/Saltiniai      # -h = žmogui skaitomi dydžiai / human sizes
+
+---------------------------------------------------------------------
+4. Sukurkite paslėptą katalogą .slaptas kataloge Duomenys.
+---------------------------------------------------------------------
+   $ mkdir ~/Projektas/Duomenys/.slaptas
+
+   LT: Linux'e failas/katalogas, prasidedantis tašku, yra paslėptas.
+   EN: In Linux a name starting with a dot is hidden.
+
+---------------------------------------------------------------------
+5. Kataloge .slaptas sukurkite failas1.txt ir failas2.txt.
+---------------------------------------------------------------------
+   $ touch ~/Projektas/Duomenys/.slaptas/failas1.txt ~/Projektas/Duomenys/.slaptas/failas2.txt
+
+---------------------------------------------------------------------
+6. Duomenys turinys su ir be paslėptų failų.
+---------------------------------------------------------------------
+   $ ls ~/Projektas/Duomenys          # be paslėptų / without hidden
+   $ ls -a ~/Projektas/Duomenys       # su paslėptais / with hidden
+   $ ls -la ~/Projektas/Duomenys
+
+   LT: -a (all) rodo ir ".", "..", ".slaptas".  -A rodo paslėptus be "." ir "..".
+   EN: -a shows ".", "..", ".slaptas" too. -A shows hidden without "." and "..".
+
+---------------------------------------------------------------------
+7. Nukopijuokite a1.txt, b2.txt, c1.txt iš Saltiniai į Duomenys.
+---------------------------------------------------------------------
+   $ cd ~/Projektas
+   $ cp Saltiniai/a1.txt Saltiniai/b2.txt Saltiniai/c1.txt Duomenys/
+   arba / or:
+   $ cp Saltiniai/{a1,b2,c1}.txt Duomenys/
+
+---------------------------------------------------------------------
+8. Kataloge Duomenys pakeiskite a*.txt plėtinį į .bak.
+---------------------------------------------------------------------
+   $ cd ~/Projektas/Duomenys
+   $ for f in a*.txt; do mv "$f" "${f%.txt}.bak"; done
+   arba (jei tik vienas failas) / or (single file):
+   $ mv a1.txt a1.bak
+   arba / or:
+   $ rename 's/\.txt$/.bak/' a*.txt      # sudo apt install rename
+
+   LT: ${f%.txt} nukerta ".txt" nuo kintamojo galo.
+   EN: ${f%.txt} strips ".txt" from the end of the variable.
+
+---------------------------------------------------------------------
+9. Perkelkite pervadintus failus iš Duomenys į Rezultatai.
+---------------------------------------------------------------------
+   $ mv ~/Projektas/Duomenys/*.bak ~/Projektas/Rezultatai/
+
+---------------------------------------------------------------------
+10. Nukopijuokite /etc/passwd į katalogą Saltiniai.
+---------------------------------------------------------------------
+   $ cp /etc/passwd ~/Projektas/Saltiniai/
+
+---------------------------------------------------------------------
+11. Išveskite failo passwd pirmas 5 eilutes.
+---------------------------------------------------------------------
+   $ head -n 5 ~/Projektas/Saltiniai/passwd
+
+---------------------------------------------------------------------
+12. Suraskite faile passwd žodį root (išveskite tas eilutes).
+---------------------------------------------------------------------
+   $ grep root ~/Projektas/Saltiniai/passwd
+
+---------------------------------------------------------------------
+13. Suskaičiuokite, kiek eilučių yra faile passwd.
+---------------------------------------------------------------------
+   $ wc -l ~/Projektas/Saltiniai/passwd
+
+---------------------------------------------------------------------
+14. Išveskite paskutines 3 failo passwd eilutes.
+---------------------------------------------------------------------
+   $ tail -n 3 ~/Projektas/Saltiniai/passwd
+
+---------------------------------------------------------------------
+15. Kataloge Rezultatai sukurkite simbolinę nuorodą į Saltiniai/passwd.
+---------------------------------------------------------------------
+   $ ln -s ~/Projektas/Saltiniai/passwd ~/Projektas/Rezultatai/passwd
+
+   LT: nuorodai geriau naudoti pilną (absoliutų) kelią, kad veiktų iš
+       bet kurio katalogo.
+   EN: use an absolute path for the target so the link works from anywhere.
+
+---------------------------------------------------------------------
+16. Patikrinkite, ar nuoroda veikia – išveskite jos turinį.
+---------------------------------------------------------------------
+   $ cat ~/Projektas/Rezultatai/passwd
+   $ ls -l ~/Projektas/Rezultatai      # rodo "passwd -> .../Saltiniai/passwd"
+
+---------------------------------------------------------------------
+17. Kataloge Saltiniai ištrinkite failą passwd.
+---------------------------------------------------------------------
+   $ rm ~/Projektas/Saltiniai/passwd
+
+---------------------------------------------------------------------
+18. Patikrinkite, ar simbolinė nuoroda vis dar galioja.
+---------------------------------------------------------------------
+   $ ls -l ~/Projektas/Rezultatai       # nuoroda raudona / link shown red
+   $ cat ~/Projektas/Rezultatai/passwd  # "No such file or directory"
+   $ test -e ~/Projektas/Rezultatai/passwd && echo veikia || echo neveikia
+
+   LT: nuoroda nebegalioja ("broken link") – originalas ištrintas.
+   EN: the link is broken – its target was deleted.
+
+---------------------------------------------------------------------
+19. Nukopijuokite /etc/fstab į katalogą Duomenys.
+---------------------------------------------------------------------
+   $ cp /etc/fstab ~/Projektas/Duomenys/
+
+---------------------------------------------------------------------
+20. Patikrinkite failo fstab dydį (baitais).
+---------------------------------------------------------------------
+   $ stat -c %s ~/Projektas/Duomenys/fstab
+   $ ls -l ~/Projektas/Duomenys/fstab
+   $ wc -c ~/Projektas/Duomenys/fstab
+
+---------------------------------------------------------------------
+21. Kataloge Saltiniai sukurkite rikiuoti.txt su eilutėmis
+    apples oranges pears kiwis bananas bananas pears.
+---------------------------------------------------------------------
+   $ printf "apples\noranges\npears\nkiwis\nbananas\nbananas\npears\n" > ~/Projektas/Saltiniai/rikiuoti.txt
+   arba / or:
+   $ cat > ~/Projektas/Saltiniai/rikiuoti.txt
+   apples
+   oranges
+   pears
+   kiwis
+   bananas
+   bananas
+   pears
+   (Ctrl+D – baigti įvedimą / finish input)
+
+---------------------------------------------------------------------
+22. Surūšiuokite pagal abėcėlę, pašalinkite pasikartojimus, įrašykite į
+    Rezultatai/rikiuota.txt.
+---------------------------------------------------------------------
+   $ sort -u ~/Projektas/Saltiniai/rikiuoti.txt > ~/Projektas/Rezultatai/rikiuota.txt
+   arba / or:
+   $ sort ~/Projektas/Saltiniai/rikiuoti.txt | uniq > ~/Projektas/Rezultatai/rikiuota.txt
+
+   LT: sort -u = rūšiuoti ir palikti unikalias; uniq šalina gretimus
+       dublikatus, todėl prieš jį reikia sort. | (pipe) perduoda vienos
+       komandos išvestį kitai.
+   EN: sort -u = sort and keep unique; uniq removes adjacent duplicates so
+       it needs sort first. | (pipe) sends one command's output to the next.
+
+---------------------------------------------------------------------
+23. Peržiūrėkite rikiuota.txt turinį.
+---------------------------------------------------------------------
+   $ cat ~/Projektas/Rezultatai/rikiuota.txt
+
+---------------------------------------------------------------------
+24. Kataloge Duomenys sukurkite skaiciai.txt su 5 skaičiais, suskaičiuokite
+    eilutes.
+---------------------------------------------------------------------
+   $ printf "5\n12\n7\n99\n1\n" > ~/Projektas/Duomenys/skaiciai.txt
+   $ wc -l ~/Projektas/Duomenys/skaiciai.txt
+
+---------------------------------------------------------------------
+25. Suraskite savo namų kataloge failą b2.txt.
+---------------------------------------------------------------------
+   $ find ~ -name b2.txt
+
+---------------------------------------------------------------------
+26. Parodykite visus failus Saltiniai kataloge, kurių pavadinime yra raidė a.
+---------------------------------------------------------------------
+   $ ls ~/Projektas/Saltiniai/*a*
+   $ ls ~/Projektas/Saltiniai | grep a
+   $ find ~/Projektas/Saltiniai -name '*a*'
+
+   LT: * – bet kokie simboliai (wildcard). '*a*' kabutėse, kad find pats
+       išskleistų šabloną.
+   EN: * matches any characters. Quote '*a*' so find expands it, not bash.
+
+---------------------------------------------------------------------
+27. Pašalinkite paslėptą katalogą .slaptas su visu turiniu.
+---------------------------------------------------------------------
+   $ rm -r ~/Projektas/Duomenys/.slaptas
+   $ rm -rf ~/Projektas/Duomenys/.slaptas   # -f = neklausti / don't ask
+
+   LT: -r rekursyviai (su visu turiniu), -f force (be klausimų). Atsargiai!
+   EN: -r recursive (with contents), -f force (no prompts). Be careful!
+
+---------------------------------------------------------------------
+28. Parodykite, kiek failų liko kataloge Saltiniai.
+---------------------------------------------------------------------
+   $ ls ~/Projektas/Saltiniai | wc -l
+   $ find ~/Projektas/Saltiniai -type f | wc -l
+   $ ls -l ~/Projektas/Saltiniai      # (eilutė "total" neskaičiuojama)
+
+   LT: ls išvestis per pipe į wc -l suskaičiuoja eilutes = failų skaičių.
+       find -type f skaičiuoja tik failus (ne katalogus).
+   EN: ls piped into wc -l counts lines = number of entries.
+       find -type f counts regular files only.
