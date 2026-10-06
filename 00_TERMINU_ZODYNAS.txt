@@ -1,0 +1,64 @@
+=====================================================================
+TERMINŲ ŽODYNAS  /  LT→EN GLOSSARY (course terms that don't map obviously)
+=====================================================================
+tarnyba ............................ service / daemon (systemd unit)
+tarnybinė stotis ................... server
+apvalkalas / interpretatorius ...... shell
+scenarijus ......................... script
+katalogas .......................... directory / folder
+teisės / prieigos teisės ........... permissions
+šeimininkas / savininkas ........... owner
+nuoroda / simbolinė nuoroda ........ link / symlink   (kieta nuoroda = hard link)
+glaudinti / suspausti .............. compress        (suarchyvuoti = archive, išarchyvuoti = extract)
+paketas ............................ package
+saugykla ........................... repository (apt) / storage
+atvaizdas .......................... image (Docker / ISO)   (paveikslėlis = picture)
+konteineris ........................ container
+branduolys ......................... kernel
+įkrova / įkrovimas ................. boot            (perkrauti = reboot / restart)
+prievadas .......................... port (network)
+ugniasienė ......................... firewall
+grįžtamojo ryšio adresas ........... loopback address (127.0.0.1)
+viešasis / privatus IP ............. public / private IP
+tinklalapis / svetainė ............. web page / website   (talpinti = host a site)
+virtualus hostas ................... virtual host (Apache)
+nutolęs / nuotolinis ............... remote          (nuotolinis pasiekiamumas = remote access)
+vartotojas / naudotojas ............ user
+šakninis vartotojas ................ root user
+administratoriaus teisės ........... admin rights (sudo group)
+pagrindinė / pirminė grupė ......... primary group (-g)   (papildomos grupės = supplementary, -G)
+namų katalogas ..................... home directory
+paslėptas failas ................... hidden (dot) file
+plėtinys ........................... file extension
+koduotas slaptažodis ............... hashed password (/etc/shadow)
+zombiniai procesai ................. zombie processes
+išeities kodas ..................... SOURCE code (not exit code; exit status = grįžimo kodas)
+vykdomasis / paleidžiamasis failas . executable     (paleisti = run, vykdyti = execute)
+išvesti į ekraną ................... print / output  (išvestis = output, įvestis = input)
+nukreipti .......................... redirect (> >>)
+kintamasis ......................... variable        (aplinkos kintamieji = environment variables)
+atnaujinti sistemą ................. update + upgrade (apt update; apt upgrade)
+įdiegti / įsirašyti / instaliuoti .. install
+pašalinti / ištrinti ............... remove / delete
+perkelti / nukopijuoti / pervadinti  move / copy / rename
+surūšiuoti ......................... sort            (pasikartojimai = duplicates)
+išlygiuoti ......................... justify (nano Ctrl+J)
+sunumeruoti ........................ number lines (nl, cat -n)
+ekrano nuotrauka / atvaizdas ....... screenshot
+debesija / debesų kompiuterija ..... cloud computing
+virtuali mašina .................... virtual machine
+distribucija ....................... distro
+atvirasis kodas .................... open source
+laisva programinė įranga ........... free (libre) software   (nemokama = free of charge)
+tvarkyklė .......................... driver
+žurnalas / log'ai .................. log (journalctl)
+būsena ............................. status / state
+automatinis paleidimas ............. autostart (enable / disable)
+atsiskaitymas / kontrolinis ........ assessment / test   (užduotis = task, punktas = item)
+PĮ = programinė įranga (software), OS = operacinė sistema, tšk. = taškai (points)
+
+GRAMMAR TRAPS
+- "kataloge X sukurkite" = create INSIDE X;  "katalogą X sukurkite" = create X itself
+- į = into/to, iš = from, prie = (attach) to, su = with
+- "pridėkite vartotoją prie grupės" = add the user to the group
+- * before a task number = optional / harder task
